@@ -1,53 +1,53 @@
 <!DOCTYPE html>
-<html lang="th">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Joule's Law & Calorimeter Virtual Lab</title>
+    <title>Joule's Law & Specific Heat Capacity Virtual Lab</title>
     <!-- Tailwind CSS & Chart.js -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body class="bg-slate-100 text-slate-800 p-4 md:p-8">
     <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-md">
-        <h1 class="text-2xl font-bold text-center text-blue-700 mb-2">ชุดการทดลองเสมือนจริง: กฎของจูลและความจุความร้อนจำเพาะ</h1>
-        <p class="text-center text-slate-500 mb-6">Virtual Calorimeter Laboratory Simulator</p>
+        <h1 class="text-2xl font-bold text-center text-blue-700 mb-2">Joule's Law & Specific Heat Capacity Simulator</h1>
+        <p class="text-center text-slate-500 mb-6">Virtual Calorimeter Laboratory</p>
 
         <!-- Navigation Tabs -->
         <div class="flex border-b mb-6 overflow-x-auto">
-            <button onclick="switchTab(1)" id="tab-1" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap">ตอนที่ 1: หาค่า R ของขดลวด</button>
-            <button onclick="switchTab(2)" id="tab-2" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">ตอนที่ 2: ต้มน้ำ (Water)</button>
-            <button onclick="switchTab(3)" id="tab-3" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">ตอนที่ 3: ต้มแอลกอฮอล์ (Ethanol)</button>
+            <button onclick="switchTab(1)" id="tab-1" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap">Part 1: Resistance (R)</button>
+            <button onclick="switchTab(2)" id="tab-2" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 2: Heating Water</button>
+            <button onclick="switchTab(3)" id="tab-3" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 3: Heating Ethanol</button>
         </div>
 
         <!-- Global Settings -->
         <div class="bg-slate-50 p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center justify-between border">
             <div class="flex items-center gap-2">
-                <span class="font-medium text-sm md:text-base">โหมดการทดลอง:</span>
+                <span class="font-medium text-sm md:text-base">System Mode:</span>
                 <label class="inline-flex items-center cursor-pointer">
                     <input type="checkbox" id="lossToggle" class="sr-only peer">
                     <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 relative"></div>
-                    <span class="ml-3 text-sm font-medium text-slate-700" id="lossLabel">Ideal 100% (ไม่มี Heat Loss)</span>
+                    <span class="ml-3 text-sm font-medium text-slate-700" id="lossLabel">Ideal System (100% Insulated)</span>
                 </label>
             </div>
             <button onclick="downloadCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
-                📥 ดาวน์โหลดข้อมูลสรุป (CSV)
+                📥 Download Summary Data (CSV)
             </button>
         </div>
 
         <!-- Tab 1 Content -->
         <div id="content-1" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-slate-50 p-4 rounded-lg border">
-                <h3 class="font-bold text-lg mb-4">ตั้งค่าแรงดันไฟฟ้า (V)</h3>
-                <label class="block text-sm mb-1">ความต่างศักย์: <span id="vVal">12</span> V</label>
+                <h3 class="font-bold text-lg mb-4">Set Voltage (V)</h3>
+                <label class="block text-sm mb-1">Voltage: <span id="vVal">12</span> V</label>
                 <input type="range" id="vInput" min="2" max="24" step="2" value="12" class="w-full mb-4" oninput="updatePart1()">
-                <button onclick="recordPart1Data()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">บันทึกค่ากระแสไฟฟ้า (I)</button>
+                <button onclick="recordPart1Data()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">Record Current (I)</button>
             </div>
             <div class="md:col-span-2 bg-slate-50 p-4 rounded-lg border">
-                <h3 class="font-bold text-lg mb-2">ตารางบันทึกผล ตอนที่ 1</h3>
+                <h3 class="font-bold text-lg mb-2">Data Table (Part 1)</h3>
                 <div class="overflow-y-auto max-h-48">
                     <table class="w-full text-sm text-left border-collapse">
-                        <thead><tr class="bg-slate-200"><th class="p-2">ครั้งที่</th><th class="p-2">V (Volts)</th><th class="p-2">I Measured (A) [±5% Error]</th></tr></thead>
+                        <thead><tr class="bg-slate-200"><th class="p-2">Trial</th><th class="p-2">Voltage (V)</th><th class="p-2">Measured Current (A)</th></tr></thead>
                         <tbody id="p1Table"></tbody>
                     </table>
                 </div>
@@ -56,28 +56,31 @@
 
         <!-- Tab 2 Content -->
         <div id="content-2" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-4">
-                <h3 class="font-bold text-lg text-blue-700">ตั้งค่าการทดลอง: น้ำ</h3>
+            <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-3">
+                <h3 class="font-bold text-lg text-blue-700">Water Setup</h3>
                 <div>
-                    <label class="block text-sm">ปริมาตร ($cm^3$):</label>
-                    <input type="number" id="vol2" value="200" min="50" max="500" class="w-full p-2 border rounded">
+                    <label class="block text-xs font-semibold">Volume (cm³):</label>
+                    <input type="number" id="vol2" value="200" min="50" max="500" class="w-full p-1.5 border rounded text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm">อุณหภูมิเริ่มต้น ($^\circ C$):</label>
-                    <input type="number" id="temp2" value="25" min="15" max="35" class="w-full p-2 border rounded">
+                    <label class="block text-xs font-semibold">Initial Temp (°C):</label>
+                    <input type="number" id="temp2" value="25" min="15" max="35" class="w-full p-1.5 border rounded text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm">ความต่างศักย์ (V):</label>
-                    <input type="number" id="v2" value="12" min="2" max="24" class="w-full p-2 border rounded">
+                    <label class="block text-xs font-semibold">Target Temp (°C, max 60):</label>
+                    <input type="number" id="targetTemp2" value="45" min="30" max="60" class="w-full p-1.5 border rounded text-sm">
                 </div>
-                <button onclick="startSimulation(2)" id="startBtn2" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">เริ่มการทดลอง (ต้มน้ำ)</button>
+                <div>
+                    <label class="block text-xs font-semibold">Voltage (V):</label>
+                    <input type="number" id="v2" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
+                </div>
+                <button onclick="startSimulation(2)" id="startBtn2" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">Start Heating (Water)</button>
             </div>
-            <!-- Animation Container -->
-            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center">
-                <h4 class="font-semibold text-sm mb-2 text-slate-600">แบบจำลอง Calorimeter (Real-time Animation)</h4>
-                <canvas id="animCanvas2" width="220" height="260" class="border bg-white rounded-lg shadow-inner"></canvas>
+            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center relative">
+                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (Closed System)</h4>
+                <div class="text-xs font-mono font-bold text-blue-600 mb-1">Time Elapsed: <span id="timer2">00:00</span></div>
+                <canvas id="animCanvas2" width="220" height="240" class="border bg-slate-200 rounded-lg shadow-inner"></canvas>
             </div>
-            <!-- Chart Container -->
             <div class="lg:col-span-5 bg-slate-50 p-4 rounded-lg border">
                 <canvas id="chart2" class="w-full h-64"></canvas>
             </div>
@@ -85,28 +88,31 @@
 
         <!-- Tab 3 Content -->
         <div id="content-3" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-4">
-                <h3 class="font-bold text-lg text-purple-700">ตั้งค่าการทดลอง: แอลกอฮอล์</h3>
+            <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-3">
+                <h3 class="font-bold text-lg text-purple-700">Ethanol Setup</h3>
                 <div>
-                    <label class="block text-sm">ปริมาตร ($cm^3$):</label>
-                    <input type="number" id="vol3" value="200" min="50" max="500" class="w-full p-2 border rounded">
+                    <label class="block text-xs font-semibold">Volume (cm³):</label>
+                    <input type="number" id="vol3" value="200" min="50" max="500" class="w-full p-1.5 border rounded text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm">อุณหภูมิเริ่มต้น ($^\circ C$):</label>
-                    <input type="number" id="temp3" value="25" min="15" max="35" class="w-full p-2 border rounded">
+                    <label class="block text-xs font-semibold">Initial Temp (°C):</label>
+                    <input type="number" id="temp3" value="25" min="15" max="35" class="w-full p-1.5 border rounded text-sm">
                 </div>
                 <div>
-                    <label class="block text-sm">ความต่างศักย์ (V):</label>
-                    <input type="number" id="v3" value="12" min="2" max="24" class="w-full p-2 border rounded">
+                    <label class="block text-xs font-semibold">Target Temp (°C, max 60):</label>
+                    <input type="number" id="targetTemp3" value="45" min="30" max="60" class="w-full p-1.5 border rounded text-sm">
                 </div>
-                <button onclick="startSimulation(3)" id="startBtn3" class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700">เริ่มการทดลอง (ต้มแอลกอฮอล์)</button>
+                <div>
+                    <label class="block text-xs font-semibold">Voltage (V):</label>
+                    <input type="number" id="v3" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
+                </div>
+                <button onclick="startSimulation(3)" id="startBtn3" class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700">Start Heating (Ethanol)</button>
             </div>
-            <!-- Animation Container -->
-            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center">
-                <h4 class="font-semibold text-sm mb-2 text-slate-600">แบบจำลอง Calorimeter (Real-time Animation)</h4>
-                <canvas id="animCanvas3" width="220" height="260" class="border bg-white rounded-lg shadow-inner"></canvas>
+            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center relative">
+                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (Closed System)</h4>
+                <div class="text-xs font-mono font-bold text-purple-600 mb-1">Time Elapsed: <span id="timer3">00:00</span></div>
+                <canvas id="animCanvas3" width="220" height="240" class="border bg-slate-200 rounded-lg shadow-inner"></canvas>
             </div>
-            <!-- Chart Container -->
             <div class="lg:col-span-5 bg-slate-50 p-4 rounded-lg border">
                 <canvas id="chart3" class="w-full h-64"></canvas>
             </div>
@@ -114,7 +120,6 @@
     </div>
 
     <script>
-        // Physics Constants
         const R_TRUE = 4.0; 
         const C_WATER = 4.184; 
         const RHO_WATER = 1.0; 
@@ -127,15 +132,22 @@
         let animFrameId = null;
         let chart2 = null, chart3 = null;
 
-        // Animation state
         let bubbles = [];
         let currentSimTemp = 25;
         let isHeaterActive = false;
 
+        // Gaussian Noise Generator (Box-Muller)
+        function gaussianRandom(mean = 0, stdev = 0.15) {
+            let u = 1 - Math.random();
+            let v = Math.random();
+            let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            return mean + z * stdev;
+        }
+
         document.getElementById('lossToggle').addEventListener('change', (e) => {
             document.getElementById('lossLabel').innerText = e.target.checked 
-                ? "Realistic (มีสูญเสียความร้อน)" 
-                : "Ideal 100% (ไม่มี Heat Loss)";
+                ? "Realistic System (Heat Loss Active)" 
+                : "Ideal System (100% Insulated)";
         });
 
         function switchTab(tabNum) {
@@ -165,11 +177,10 @@
         function recordPart1Data() {
             const V = parseFloat(document.getElementById('vInput').value);
             const I_true = V / R_TRUE;
-            const error = 1 + (Math.random() * 0.1 - 0.05);
-            const I_measured = (I_true * error).toFixed(2);
+            const I_measured = (I_true + gaussianRandom(0, 0.03)).toFixed(2);
             
             p1Data.push({ V, I: I_measured });
-            expLogs.push({ Tab: "ตอนที่ 1", Liquid: "-", V, I: I_measured, Time_s: "-", Temp_C: "-" });
+            expLogs.push({ Tab: "Part 1", Liquid: "-", V, I: I_measured, Time_s: "-", Temp_C: "-" });
 
             const tbody = document.getElementById('p1Table');
             tbody.innerHTML += `<tr class="border-b"><td class="p-2">${p1Data.length}</td><td class="p-2">${V}</td><td class="p-2">${I_measured}</td></tr>`;
@@ -182,100 +193,86 @@
             
             const newChart = new Chart(ctx, {
                 type: 'line',
-                data: { labels: [], datasets: [{ label: 'อุณหภูมิ (°C)', data: [], borderColor: color, backgroundColor: color, fill: false }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'เวลา (วินาที)' } }, y: { title: { display: true, text: 'อุณหภูมิ (°C)' }, max: 55 } } }
+                data: { labels: [], datasets: [{ label: 'Temperature (°C)', data: [], borderColor: color, backgroundColor: color, fill: false, pointRadius: 3 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Time (s)' } }, y: { title: { display: true, text: 'Temperature (°C)' }, max: 65 } } }
             });
 
             if (tabNum === 2) chart2 = newChart;
             if (tabNum === 3) chart3 = newChart;
         }
 
-        // --- Canvas Animation Functions ---
+        // Draw Closed System Calorimeter
         function drawCalorimeter(tabNum, temp, isHeating) {
             const canvas = document.getElementById(tabNum === 2 ? 'animCanvas2' : 'animCanvas3');
             if(!canvas) return;
             const ctx = canvas.getContext('2d');
-            const w = canvas.width;
-            const h = canvas.height;
+            const w = canvas.width, h = canvas.height;
 
             ctx.clearRect(0, 0, w, h);
 
-            // 1. Draw Beaker Liquid
-            const liquidColor = tabNum === 2 ? 'rgba(147, 197, 253, 0.5)' : 'rgba(216, 180, 254, 0.5)';
-            ctx.fillStyle = liquidColor;
-            ctx.fillRect(40, 80, 140, 140);
-
-            // 2. Draw Beaker Outline
+            // Outer Insulated Vessel Wall
+            ctx.fillStyle = '#cbd5e1';
+            ctx.fillRect(25, 45, 170, 180);
             ctx.strokeStyle = '#475569';
             ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(35, 60);
-            ctx.lineTo(40, 60);
-            ctx.lineTo(40, 220);
-            ctx.lineTo(180, 220);
-            ctx.lineTo(180, 60);
-            ctx.lineTo(185, 60);
-            ctx.stroke();
+            ctx.strokeRect(25, 45, 170, 180);
 
-            // 3. Draw Heating Coil (Red glow when active)
+            // Liquid Fill
+            const liquidColor = tabNum === 2 ? 'rgba(59, 130, 246, 0.65)' : 'rgba(168, 85, 247, 0.65)';
+            ctx.fillStyle = liquidColor;
+            ctx.fillRect(35, 100, 150, 115);
+
+            // Closed Lid (Top Cap)
+            ctx.fillStyle = '#334155';
+            ctx.fillRect(20, 35, 180, 15);
+
+            // U-Shaped Heating Element (Left Side)
             ctx.strokeStyle = isHeating ? '#ef4444' : '#64748b';
-            ctx.lineWidth = 4;
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+
+            // Insulated terminals going left
             ctx.beginPath();
-            ctx.moveTo(80, 40);
-            ctx.lineTo(80, 190);
-            // Zigzag coil
-            ctx.lineTo(90, 205);
-            ctx.lineTo(110, 190);
-            ctx.lineTo(130, 205);
-            ctx.lineTo(140, 190);
-            ctx.lineTo(140, 40);
+            ctx.moveTo(10, 20); ctx.lineTo(60, 20); ctx.lineTo(60, 180);
+            ctx.arc(72.5, 180, 12, Math.PI, 0, true); // U-bend
+            ctx.lineTo(85, 20); ctx.lineTo(10, 20);
             ctx.stroke();
 
-            // 4. Draw Thermometer
-            ctx.fillStyle = '#e2e8f0';
-            ctx.fillRect(105, 30, 10, 150);
-            ctx.strokeStyle = '#94a3b8';
+            // Thermometer (Right Side)
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(145, 15, 12, 175);
+            ctx.strokeStyle = '#64748b';
             ctx.lineWidth = 1;
-            ctx.strokeRect(105, 30, 10, 150);
+            ctx.strokeRect(145, 15, 12, 175);
 
-            // Thermometer Mercury Level based on temp
-            const mercuryHeight = Math.min(130, Math.max(10, (temp - 15) * 3));
+            // Mercury Column
+            const mercuryHeight = Math.min(150, Math.max(10, (temp - 15) * 3.2));
             ctx.fillStyle = '#dc2626';
-            ctx.fillRect(107, 175 - mercuryHeight, 6, mercuryHeight);
+            ctx.fillRect(147.5, 180 - mercuryHeight, 7, mercuryHeight);
             ctx.beginPath();
-            ctx.arc(110, 180, 8, 0, Math.PI * 2);
+            ctx.arc(151, 185, 8, 0, Math.PI * 2);
             ctx.fill();
 
-            // 5. Draw Bubbles Animation (Higher temp -> More bubbles)
+            // Boiling Bubbles
             if (isHeating && temp > 30) {
-                const bubbleChance = (temp - 30) / 20; // 0 to 1 probability
-                if (Math.random() < bubbleChance) {
+                if (Math.random() < (temp - 30) / 25) {
                     bubbles.push({
-                        x: 85 + Math.random() * 50,
-                        y: 190,
-                        r: 2 + Math.random() * 3,
-                        speed: 1 + Math.random() * (temp / 15)
+                        x: 60 + Math.random() * 25,
+                        y: 180,
+                        r: 2 + Math.random() * 2.5,
+                        speed: 0.8 + Math.random() * (temp / 20)
                     });
                 }
             }
 
-            // Update & Render Bubbles
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-            ctx.strokeStyle = '#93c5fd';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
             for (let i = bubbles.length - 1; i >= 0; i--) {
                 let b = bubbles[i];
                 b.y -= b.speed;
-                b.x += Math.sin(b.y / 5) * 0.5; // Swaying motion
-
                 ctx.beginPath();
                 ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.stroke();
-
-                // Remove bubble if it reaches liquid surface
-                if (b.y < 80) {
-                    bubbles.splice(i, 1);
-                }
+                if (b.y < 100) bubbles.splice(i, 1);
             }
         }
 
@@ -297,11 +294,12 @@
             const vol = parseFloat(document.getElementById(isWater ? 'vol2' : 'vol3').value);
             const mass = vol * rho;
             currentSimTemp = parseFloat(document.getElementById(isWater ? 'temp2' : 'temp3').value);
+            const targetTemp = parseFloat(document.getElementById(isWater ? 'targetTemp2' : 'targetTemp3').value);
             const V = parseFloat(document.getElementById(isWater ? 'v2' : 'v3').value);
             const P_elec = (V * V) / R_TRUE;
 
             const hasLoss = document.getElementById('lossToggle').checked;
-            const k = 0.05;
+            const k = 0.04;
             const T_room = 25.0;
 
             let timeSec = 0;
@@ -310,46 +308,52 @@
             btn.disabled = true;
             btn.classList.add('opacity-50');
 
-            // Animation Loop (60 FPS)
             function renderLoop() {
                 drawCalorimeter(tabNum, currentSimTemp, isHeaterActive);
-                if (isHeaterActive) {
-                    animFrameId = requestAnimationFrame(renderLoop);
-                }
+                if (isHeaterActive) animFrameId = requestAnimationFrame(renderLoop);
             }
             renderLoop();
 
-            // Physics Loop
+            // 1 Second Real-time Clock Loop
             simInterval = setInterval(() => {
-                timeSec += 5;
+                timeSec += 1;
 
+                // Update Timer UI (MM:SS)
+                const mins = String(Math.floor(timeSec / 60)).padStart(2, '0');
+                const secs = String(timeSec % 60).padStart(2, '0');
+                document.getElementById(isWater ? 'timer2' : 'timer3').innerText = `${mins}:${secs}`;
+
+                // Heat Calculations
                 let P_loss = hasLoss ? k * (currentSimTemp - T_room) : 0;
                 let P_net = Math.max(0, P_elec - P_loss);
-                let dT = (P_net * 5) / (mass * c);
+                let dT = P_net / (mass * c); // dT per second
                 currentSimTemp += dT;
 
-                const noise = 1 + (Math.random() * 0.02 - 0.01);
-                const measuredTemp = (currentSimTemp * noise).toFixed(2);
+                // Record & Plot Data EVERY 10 SECONDS
+                if (timeSec % 10 === 0) {
+                    const measuredTemp = (currentSimTemp + gaussianRandom(0, 0.15)).toFixed(2);
 
-                targetChart.data.labels.push(timeSec);
-                targetChart.data.datasets[0].data.push(measuredTemp);
-                targetChart.update();
+                    targetChart.data.labels.push(timeSec);
+                    targetChart.data.datasets[0].data.push(measuredTemp);
+                    targetChart.update();
 
-                expLogs.push({ Tab: `ตอนที่ ${tabNum}`, Liquid: liquidName, V, I: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: measuredTemp });
+                    expLogs.push({ Tab: `Part ${tabNum}`, Liquid: liquidName, V, I: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: measuredTemp });
+                }
 
-                if (currentSimTemp >= 50 || timeSec >= 600) {
+                // Stop conditions: Target Temp reached or 10 minutes limit
+                if (currentSimTemp >= targetTemp || timeSec >= 600) {
                     clearInterval(simInterval);
                     isHeaterActive = false;
                     btn.disabled = false;
                     btn.classList.remove('opacity-50');
                     drawCalorimeter(tabNum, currentSimTemp, false);
-                    alert(`จบการทดลอง (${liquidName}): สิ้นสุดที่อุณหภูมิ ${measuredTemp} °C เวลา ${timeSec} วินาที`);
+                    alert(`Experiment Complete (${liquidName})\nFinal Temperature: ${currentSimTemp.toFixed(2)} °C\nElapsed Time: ${timeSec} seconds`);
                 }
-            }, 200);
+            }, 1000); // 1000ms = 1 real second
         }
 
         function downloadCSV() {
-            if (expLogs.length === 0) { alert("ยังไม่มีข้อมูลการทดลอง"); return; }
+            if (expLogs.length === 0) { alert("No experiment data recorded yet."); return; }
             let csvContent = "data:text/csv;charset=utf-8,Tab,Liquid,Voltage(V),Current(A),Time(s),Temp(degC)\n";
             expLogs.forEach(r => {
                 csvContent += `${r.Tab},${r.Liquid},${r.V},${r.I},${r.Time_s},${r.Temp_C}\n`;
@@ -357,7 +361,7 @@
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "joule_lab_results.csv");
+            link.setAttribute("download", "joule_lab_data.csv");
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
