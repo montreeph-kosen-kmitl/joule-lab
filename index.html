@@ -13,38 +13,34 @@
         <h1 class="text-2xl font-bold text-center text-blue-700 mb-2">Joule's Law & Specific Heat Capacity Simulator</h1>
         <p class="text-center text-slate-500 mb-6">Virtual Calorimeter Laboratory</p>
 
-        <!-- Navigation Tabs -->
-        <div class="flex border-b mb-6 overflow-x-auto">
-            <button onclick="switchTab(1)" id="tab-1" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap">Part 1: Resistance (R)</button>
-            <button onclick="switchTab(2)" id="tab-2" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 2: Heating Water</button>
-            <button onclick="switchTab(3)" id="tab-3" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 3: Heating Ethanol</button>
-        </div>
-
-        <!-- Global Settings -->
-        <div class="bg-slate-50 p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center justify-between border">
-            <div class="flex items-center gap-3">
-                <span class="font-medium text-sm md:text-base">System Type:</span>
-                <select id="systemTypeSelect" onchange="handleSystemTypeChange()" class="p-2 border rounded-lg bg-white font-semibold text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option value="isolated">Isolated System (Lid + Insulated, Ideal 100%)</option>
-                    <option value="closed">Closed System (Lid only, Newton's Cooling Law)</option>
-                </select>
+        <!-- Navigation Tabs & Master Export -->
+        <div class="flex flex-wrap items-center justify-between border-b mb-6 gap-2">
+            <div class="flex overflow-x-auto">
+                <button onclick="switchTab(1)" id="tab-1" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap">Part 1: Resistance (R)</button>
+                <button onclick="switchTab(2)" id="tab-2" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 2: Heating Water</button>
+                <button onclick="switchTab(3)" id="tab-3" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 3: Heating Ethanol</button>
             </div>
-            <button onclick="downloadCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
-                📥 Download Summary Data (CSV)
+            <button onclick="downloadCSV('all')" class="bg-slate-700 hover:bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-semibold mb-2 flex items-center gap-1 shadow-sm">
+                📦 Download All Parts (Combined CSV)
             </button>
         </div>
 
-        <!-- Tab 1 Content -->
+        <!-- Part 1 Content -->
         <div id="content-1" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="bg-slate-50 p-4 rounded-lg border">
-                <h3 class="font-bold text-lg mb-4">Set Voltage (V)</h3>
-                <label class="block text-sm mb-1">Voltage: <span id="vVal">12</span> V</label>
-                <input type="range" id="vInput" min="2" max="24" step="2" value="12" class="w-full mb-4" oninput="updatePart1()">
+            <div class="bg-slate-50 p-4 rounded-lg border space-y-4">
+                <h3 class="font-bold text-lg text-blue-700">Set Voltage (V)</h3>
+                <div>
+                    <label class="block text-sm font-semibold mb-1">Voltage: <span id="vVal">12</span> V</label>
+                    <input type="range" id="vInput" min="2" max="24" step="2" value="12" class="w-full" oninput="updatePart1()">
+                </div>
                 <button onclick="recordPart1Data()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">Record Current (I)</button>
+                <button onclick="downloadCSV(1)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1">
+                    📥 Download Part 1 CSV
+                </button>
             </div>
             <div class="md:col-span-2 bg-slate-50 p-4 rounded-lg border">
                 <h3 class="font-bold text-lg mb-2">Data Table (Part 1)</h3>
-                <div class="overflow-y-auto max-h-48">
+                <div class="overflow-y-auto max-h-56 border rounded bg-white">
                     <table class="w-full text-sm text-left border-collapse">
                         <thead><tr class="bg-slate-200"><th class="p-2">Trial</th><th class="p-2">Voltage (V)</th><th class="p-2">Measured Current (A)</th></tr></thead>
                         <tbody id="p1Table"></tbody>
@@ -53,10 +49,17 @@
             </div>
         </div>
 
-        <!-- Tab 2 Content -->
+        <!-- Part 2 Content -->
         <div id="content-2" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-3">
                 <h3 class="font-bold text-lg text-blue-700">Water Setup</h3>
+                <div>
+                    <label class="block text-xs font-semibold">System Type:</label>
+                    <select id="sysType2" class="w-full p-1.5 border rounded text-xs bg-white font-medium" onchange="drawCalorimeter(2, parseFloat(document.getElementById('temp2').value), false)">
+                        <option value="isolated">Isolated System (Lid + Insulated)</option>
+                        <option value="closed">Closed System (Newton's Loss)</option>
+                    </select>
+                </div>
                 <div>
                     <label class="block text-xs font-semibold">Volume (cm³):</label>
                     <input type="number" id="vol2" value="200" min="50" max="500" class="w-full p-1.5 border rounded text-sm">
@@ -73,11 +76,13 @@
                     <label class="block text-xs font-semibold">Voltage (V):</label>
                     <input type="number" id="v2" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
                 </div>
-                <button onclick="startSimulation(2)" id="startBtn2" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">Start Heating (Water)</button>
+                <button onclick="startSimulation(2)" id="startBtn2" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 text-sm">Start Heating (Water)</button>
+                <button onclick="downloadCSV(2)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1">
+                    📥 Download Part 2 CSV
+                </button>
             </div>
             <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center relative">
-                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (<span id="sysTitle2">Isolated</span>)</h4>
-                <!-- Real-time Digital Indicators -->
+                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (Water)</h4>
                 <div class="flex gap-4 text-xs font-mono font-bold mb-1 bg-white px-3 py-1 rounded border shadow-sm">
                     <span class="text-blue-600">Time: <span id="timer2">00:00</span></span>
                     <span class="text-red-600">Temp: <span id="tempDisp2">25.00</span> °C</span>
@@ -89,10 +94,14 @@
             </div>
         </div>
 
-        <!-- Tab 3 Content -->
+        <!-- Part 3 Content -->
         <div id="content-3" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
             <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-3">
                 <h3 class="font-bold text-lg text-purple-700">Ethanol Setup</h3>
+                <div>
+                    <label class="block text-xs font-semibold">System Type:</label>
+                    <input type="text" value="Closed System (Newton's Loss)" disabled class="w-full p-1.5 border rounded text-xs bg-gray-200 font-semibold text-gray-700 cursor-not-allowed">
+                </div>
                 <div>
                     <label class="block text-xs font-semibold">Volume (cm³):</label>
                     <input type="number" id="vol3" value="200" min="50" max="500" class="w-full p-1.5 border rounded text-sm">
@@ -109,11 +118,13 @@
                     <label class="block text-xs font-semibold">Voltage (V):</label>
                     <input type="number" id="v3" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
                 </div>
-                <button onclick="startSimulation(3)" id="startBtn3" class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700">Start Heating (Ethanol)</button>
+                <button onclick="startSimulation(3)" id="startBtn3" class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 text-sm">Start Heating (Ethanol)</button>
+                <button onclick="downloadCSV(3)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1">
+                    📥 Download Part 3 CSV
+                </button>
             </div>
             <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center relative">
-                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (<span id="sysTitle3">Closed</span>)</h4>
-                <!-- Real-time Digital Indicators -->
+                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (Ethanol)</h4>
                 <div class="flex gap-4 text-xs font-mono font-bold mb-1 bg-white px-3 py-1 rounded border shadow-sm">
                     <span class="text-purple-600">Time: <span id="timer3">00:00</span></span>
                     <span class="text-red-600">Temp: <span id="tempDisp3">25.00</span> °C</span>
@@ -134,9 +145,11 @@
         const RHO_ETHANOL = 0.789; 
         const K_COOLING = 0.0005; // 5 * 10^-4 per second
 
-        let activeTab = 1;
         let p1Data = [];
-        let expLogs = []; 
+        let expLogsPart1 = [];
+        let expLogsPart2 = [];
+        let expLogsPart3 = [];
+
         let simInterval = null;
         let animFrameId = null;
         let chart2 = null, chart3 = null;
@@ -152,26 +165,7 @@
             return mean + z * stdev;
         }
 
-        function handleSystemTypeChange() {
-            const sysSelect = document.getElementById('systemTypeSelect');
-            if (activeTab === 3 && sysSelect.value === 'isolated') {
-                alert("Ethanol experiments are restricted to Closed System mode only.");
-                sysSelect.value = 'closed';
-            }
-            updateSystemTitles();
-            if (activeTab === 2) drawCalorimeter(2, parseFloat(document.getElementById('temp2').value), false);
-            if (activeTab === 3) drawCalorimeter(3, parseFloat(document.getElementById('temp3').value), false);
-        }
-
-        function updateSystemTitles() {
-            const sysVal = document.getElementById('systemTypeSelect').value;
-            const title = sysVal === 'isolated' ? 'Isolated System' : 'Closed System';
-            document.getElementById('sysTitle2').innerText = title;
-            document.getElementById('sysTitle3').innerText = title;
-        }
-
         function switchTab(tabNum) {
-            activeTab = tabNum;
             [1, 2, 3].forEach(n => {
                 document.getElementById(`tab-${n}`).className = n === tabNum 
                     ? "py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap"
@@ -180,16 +174,6 @@
             });
 
             document.getElementById(`content-${tabNum}`).classList.remove('hidden');
-
-            const sysSelect = document.getElementById('systemTypeSelect');
-            if (tabNum === 3) {
-                // Force Closed System for Ethanol
-                sysSelect.value = 'closed';
-                sysSelect.options[0].disabled = true;
-            } else {
-                sysSelect.options[0].disabled = false;
-            }
-            updateSystemTitles();
 
             if (tabNum === 2) {
                 if (!chart2) initChart(2);
@@ -211,7 +195,7 @@
             const I_measured = (I_true + gaussianRandom(0, 0.03)).toFixed(2);
             
             p1Data.push({ V, I: I_measured });
-            expLogs.push({ Tab: "Part 1", Liquid: "-", System: "-", V, I: I_measured, Time_s: "-", Temp_C: "-" });
+            expLogsPart1.push({ Part: "Part 1", Voltage: V, Current: I_measured });
 
             const tbody = document.getElementById('p1Table');
             tbody.innerHTML += `<tr class="border-b"><td class="p-2">${p1Data.length}</td><td class="p-2">${V}</td><td class="p-2">${I_measured}</td></tr>`;
@@ -237,18 +221,17 @@
             if(!canvas) return;
             const ctx = canvas.getContext('2d');
             const w = canvas.width, h = canvas.height;
-            const isIsolated = document.getElementById('systemTypeSelect').value === 'isolated';
+            const isIsolated = tabNum === 2 ? (document.getElementById('sysType2').value === 'isolated') : false;
 
             ctx.clearRect(0, 0, w, h);
 
             // Outer Insulated Vessel
-            ctx.fillStyle = isIsolated ? '#94a3b8' : '#cbd5e1'; // Darker jacket for isolated insulation
+            ctx.fillStyle = isIsolated ? '#94a3b8' : '#cbd5e1'; 
             ctx.fillRect(20, 45, 180, 180);
             ctx.strokeStyle = '#334155';
             ctx.lineWidth = isIsolated ? 5 : 3;
             ctx.strokeRect(20, 45, 180, 180);
 
-            // Insulation Layer Tag if Isolated
             if (isIsolated) {
                 ctx.fillStyle = '#f1f5f9';
                 ctx.fillRect(25, 50, 170, 10);
@@ -263,7 +246,7 @@
             ctx.fillStyle = '#1e293b';
             ctx.fillRect(15, 35, 190, 15);
 
-            // U-Shaped Heating Element (Left Side)
+            // U-Shaped Heating Element
             ctx.strokeStyle = isHeating ? '#ef4444' : '#64748b';
             ctx.lineWidth = 5;
             ctx.lineCap = 'round';
@@ -274,7 +257,7 @@
             ctx.lineTo(85, 20); ctx.lineTo(10, 20);
             ctx.stroke();
 
-            // Thermometer (Right Side)
+            // Thermometer
             ctx.fillStyle = '#f8fafc';
             ctx.fillRect(145, 15, 12, 175);
             ctx.strokeStyle = '#64748b';
@@ -319,7 +302,7 @@
 
             const isWater = tabNum === 2;
             const liquidName = isWater ? "Water" : "Ethanol";
-            const sysType = document.getElementById('systemTypeSelect').value;
+            const sysType = isWater ? document.getElementById('sysType2').value : 'closed';
             const c = isWater ? C_WATER : C_ETHANOL;
             const rho = isWater ? RHO_WATER : RHO_ETHANOL;
             const targetChart = isWater ? chart2 : chart3;
@@ -342,7 +325,6 @@
             btn.disabled = true;
             btn.classList.add('opacity-50');
 
-            // Initial Display Update
             document.getElementById(isWater ? 'tempDisp2' : 'tempDisp3').innerText = currentSimTemp.toFixed(2);
             document.getElementById(isWater ? 'timer2' : 'timer3').innerText = "00:00";
 
@@ -352,18 +334,15 @@
             }
             renderLoop();
 
-            // 1 Second Real-time Loop
             simInterval = setInterval(() => {
                 timeSec += 1;
 
-                // Heat Calculations
                 let dT_heat = P_elec / (mass * c);
                 let dT_loss = (sysType === 'closed') ? K_COOLING * (currentSimTemp - T_room) : 0;
                 let dT_net = dT_heat - dT_loss;
 
                 currentSimTemp += dT_net;
 
-                // Update UI Real-time Indicators
                 const mins = String(Math.floor(timeSec / 60)).padStart(2, '0');
                 const secs = String(timeSec % 60).padStart(2, '0');
                 const noisyRealtimeTemp = (currentSimTemp + gaussianRandom(0, 0.15)).toFixed(2);
@@ -371,16 +350,16 @@
                 document.getElementById(isWater ? 'timer2' : 'timer3').innerText = `${mins}:${secs}`;
                 document.getElementById(isWater ? 'tempDisp2' : 'tempDisp3').innerText = noisyRealtimeTemp;
 
-                // Record & Plot Data EVERY 10 SECONDS
                 if (timeSec % 10 === 0) {
                     targetChart.data.labels.push(timeSec);
                     targetChart.data.datasets[0].data.push(noisyRealtimeTemp);
                     targetChart.update();
 
-                    expLogs.push({ Tab: `Part ${tabNum}`, Liquid: liquidName, System: sysType, V, I: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: noisyRealtimeTemp });
+                    const logEntry = { Liquid: liquidName, System: sysType, Voltage_V: V, Current_A: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: noisyRealtimeTemp };
+                    if (isWater) expLogsPart2.push(logEntry);
+                    else expLogsPart3.push(logEntry);
                 }
 
-                // Stop condition: Target Temperature Reached
                 if (currentSimTemp >= targetTemp) {
                     clearInterval(simInterval);
                     isHeaterActive = false;
@@ -389,19 +368,48 @@
                     drawCalorimeter(tabNum, currentSimTemp, false);
                     alert(`Experiment Complete (${liquidName} - ${sysType.toUpperCase()})\nTarget Temperature Reached: ${currentSimTemp.toFixed(2)} °C\nElapsed Time: ${timeSec} seconds`);
                 }
-            }, 1000); // 1000ms = 1 real second
+            }, 1000);
         }
 
-        function downloadCSV() {
-            if (expLogs.length === 0) { alert("No experiment data recorded yet."); return; }
-            let csvContent = "data:text/csv;charset=utf-8,Tab,Liquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
-            expLogs.forEach(r => {
-                csvContent += `${r.Tab},${r.Liquid},${r.System},${r.V},${r.I},${r.Time_s},${r.Temp_C}\n`;
-            });
+        function downloadCSV(part) {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            let filename = "joule_lab_data.csv";
+
+            if (part === 1) {
+                if (expLogsPart1.length === 0) { alert("No Part 1 data recorded."); return; }
+                csvContent += "Trial,Voltage(V),MeasuredCurrent(A)\n";
+                expLogsPart1.forEach((r, idx) => { csvContent += `${idx + 1},${r.Voltage},${r.Current}\n`; });
+                filename = "part1_resistance_data.csv";
+            } else if (part === 2) {
+                if (expLogsPart2.length === 0) { alert("No Part 2 data recorded."); return; }
+                csvContent += "Liquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+                expLogsPart2.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                filename = "part2_water_heating_data.csv";
+            } else if (part === 3) {
+                if (expLogsPart3.length === 0) { alert("No Part 3 data recorded."); return; }
+                csvContent += "Liquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+                expLogsPart3.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                filename = "part3_ethanol_heating_data.csv";
+            } else if (part === 'all') {
+                if (expLogsPart1.length === 0 && expLogsPart2.length === 0 && expLogsPart3.length === 0) {
+                    alert("No experiment data recorded yet."); return;
+                }
+                csvContent += "=== PART 1: RESISTANCE ===\nTrial,Voltage(V),MeasuredCurrent(A)\n";
+                expLogsPart1.forEach((r, idx) => { csvContent += `${idx + 1},${r.Voltage},${r.Current}\n`; });
+                
+                csvContent += "\n=== PART 2: WATER HEATING ===\nLiquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+                expLogsPart2.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+
+                csvContent += "\n=== PART 3: ETHANOL HEATING ===\nLiquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+                expLogsPart3.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                
+                filename = "combined_joule_lab_data.csv";
+            }
+
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
             link.setAttribute("href", encodedUri);
-            link.setAttribute("download", "joule_lab_data.csv");
+            link.setAttribute("download", filename);
             document.body.appendChild(link);
             link.click();
             document.body.removeChild(link);
