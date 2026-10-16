@@ -186,3 +186,296 @@
                     <canvas id="chart3" class="w-full h-full"></canvas>
                 </div>
                 <!-- 10-Second Data Table Log -->
+                <div>
+                    <h4 class="font-bold text-xs text-slate-700 mb-1">Live Data Log (10s Intervals)</h4>
+                    <div class="overflow-y-auto max-h-36 border rounded bg-white">
+                        <table class="w-full text-xs text-left border-collapse">
+                            <thead><tr class="bg-slate-200 sticky top-0"><th class="p-1.5">Time (s)</th><th class="p-1.5">Temp (°C)</th></tr></thead>
+                            <tbody id="p3LogTable"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const R_TRUE = 4.0; 
+        const C_WATER = 4.184; 
+        const RHO_WATER = 1.0; 
+        const C_ETHANOL = 2.440; 
+        const RHO_ETHANOL = 0.789; 
+        const K_COOLING = 0.0005;
+
+        let p1Data = [];
+        let expLogsPart1 = [];
+        let expLogsPart2 = [];
+        let expLogsPart3 = [];
+
+        let simInterval = null;
+        let animFrameId = null;
+        let chart2 = null, chart3 = null;
+
+        let bubbles = [];
+        let currentSimTemp = 25;
+        let isHeaterActive = false;
+
+        function gaussianRandom(mean = 0, stdev = 0.15) {
+            let u = 1 - Math.random();
+            let v = Math.random();
+            let z = Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            return mean + z * stdev;
+        }
+
+        function switchTab(tabNum) {
+            [0, 1, 2, 3].forEach(n => {
+                document.getElementById(`tab-${n}`).className = n === tabNum 
+                    ? "py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap"
+                    : "py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap";
+                document.getElementById(`content-${n}`).classList.add('hidden');
+            });
+
+            document.getElementById(`content-${tabNum}`).classList.remove('hidden');
+
+            if (tabNum === 2) {
+                if (!chart2) initChart(2);
+                drawCalorimeter(2, parseFloat(document.getElementById('temp2').value), false);
+            }
+            if (tabNum === 3) {
+                if (!chart3) initChart(3);
+                drawCalorimeter(3, parseFloat(document.getElementById('temp3').value), false);
+            }
+        }
+
+        function updatePart1() {
+            document.getElementById('vVal').innerText = document.getElementById('vInput').value;
+        }
+
+        function recordPart1Data() {
+            const V = parseFloat(document.getElementById('vInput').value);
+            const I_true = V / R_TRUE;
+            const I_measured = (I_true + gaussianRandom(0, 0.03)).toFixed(2);
+            
+            p1Data.push({ V, I: I_measured });
+            expLogsPart1.push({ Part: "Part 1", Voltage: V, Current: I_measured });
+
+            const tbody = document.getElementById('p1Table');
+            tbody.innerHTML += `<tr class="border-b"><td class="p-2">${p1Data.length}</td><td class="p-2">${V}</td><td class="p-2">${I_measured}</td></tr>`;
+        }
+
+        function initChart(tabNum) {
+            const canvasId = tabNum === 2 ? 'chart2' : 'chart3';
+            const color = tabNum === 2 ? '#2563eb' : '#9333ea';
+            const ctx = document.getElementById(canvasId).getContext('2d');
+            
+            const newChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Temperature (°C)', data: [], borderColor: color, backgroundColor: color, fill: false, pointRadius: 3 }] },
+                options: { responsive: true, maintainAspectRatio: false, scales: { x: { title: { display: true, text: 'Time (s)' } }, y: { title: { display: true, text: 'Temperature (°C)' }, max: 65 } } }
+            });
+
+            if (tabNum === 2) chart2 = newChart;
+            if (tabNum === 3) chart3 = newChart;
+        }
+
+        function drawCalorimeter(tabNum, temp, isHeating) {
+            const canvas = document.getElementById(tabNum === 2 ? 'animCanvas2' : 'animCanvas3');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width, h = canvas.height;
+            const isIsolated = tabNum === 2 ? (document.getElementById('sysType2').value === 'isolated') : false;
+
+            ctx.clearRect(0, 0, w, h);
+
+            ctx.fillStyle = isIsolated ? '#94a3b8' : '#cbd5e1'; 
+            ctx.fillRect(20, 45, 180, 180);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = isIsolated ? 5 : 3;
+            ctx.strokeRect(20, 45, 180, 180);
+
+            if (isIsolated) {
+                ctx.fillStyle = '#f1f5f9';
+                ctx.fillRect(25, 50, 170, 10);
+            }
+
+            const liquidColor = tabNum === 2 ? 'rgba(59, 130, 246, 0.65)' : 'rgba(168, 85, 247, 0.65)';
+            ctx.fillStyle = liquidColor;
+            ctx.fillRect(35, 100, 150, 115);
+
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(15, 35, 190, 15);
+
+            ctx.strokeStyle = isHeating ? '#ef4444' : '#64748b';
+            ctx.lineWidth = 5;
+            ctx.lineCap = 'round';
+
+            ctx.beginPath();
+            ctx.moveTo(10, 20); ctx.lineTo(60, 20); ctx.lineTo(60, 180);
+            ctx.arc(72.5, 180, 12, Math.PI, 0, true);
+            ctx.lineTo(85, 20); ctx.lineTo(10, 20);
+            ctx.stroke();
+
+            ctx.fillStyle = '#f8fafc';
+            ctx.fillRect(145, 15, 12, 175);
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 1;
+            ctx.strokeRect(145, 15, 12, 175);
+
+            const mercuryHeight = Math.min(150, Math.max(10, (temp - 15) * 3.2));
+            ctx.fillStyle = '#dc2626';
+            ctx.fillRect(147.5, 180 - mercuryHeight, 7, mercuryHeight);
+            ctx.beginPath();
+            ctx.arc(151, 185, 8, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (isHeating && temp > 30) {
+                if (Math.random() < (temp - 30) / 25) {
+                    bubbles.push({
+                        x: 60 + Math.random() * 25,
+                        y: 180,
+                        r: 2 + Math.random() * 2.5,
+                        speed: 0.8 + Math.random() * (temp / 20)
+                    });
+                }
+            }
+
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            for (let i = bubbles.length - 1; i >= 0; i--) {
+                let b = bubbles[i];
+                b.y -= b.speed;
+                ctx.beginPath();
+                ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+                ctx.fill();
+                if (b.y < 100) bubbles.splice(i, 1);
+            }
+        }
+
+        function startSimulation(tabNum) {
+            clearInterval(simInterval);
+            cancelAnimationFrame(animFrameId);
+            bubbles = [];
+
+            const isWater = tabNum === 2;
+            const liquidName = isWater ? "Water" : "Ethanol";
+            const sysType = isWater ? document.getElementById('sysType2').value : 'closed';
+            const c = isWater ? C_WATER : C_ETHANOL;
+            const rho = isWater ? RHO_WATER : RHO_ETHANOL;
+            const targetChart = isWater ? chart2 : chart3;
+            const logTable = document.getElementById(isWater ? 'p2LogTable' : 'p3LogTable');
+
+            // Reset Chart & Data Log Table
+            targetChart.data.labels = [];
+            targetChart.data.datasets[0].data = [];
+            targetChart.update();
+            logTable.innerHTML = "";
+
+            const vol = parseFloat(document.getElementById(isWater ? 'vol2' : 'vol3').value);
+            const mass = vol * rho;
+            const T_room = parseFloat(document.getElementById(isWater ? 'temp2' : 'temp3').value); // T_room equals Initial Temp
+            currentSimTemp = T_room;
+            const targetTemp = parseFloat(document.getElementById(isWater ? 'targetTemp2' : 'targetTemp3').value);
+            const V = parseFloat(document.getElementById(isWater ? 'v2' : 'v3').value);
+            const P_elec = (V * V) / R_TRUE;
+
+            let timeSec = 0;
+            isHeaterActive = true;
+            const btn = document.getElementById(isWater ? 'startBtn2' : 'startBtn3');
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+
+            document.getElementById(isWater ? 'tempDisp2' : 'tempDisp3').innerText = currentSimTemp.toFixed(2);
+            document.getElementById(isWater ? 'timer2' : 'timer3').innerText = "00:00";
+
+            function renderLoop() {
+                drawCalorimeter(tabNum, currentSimTemp, isHeaterActive);
+                if (isHeaterActive) animFrameId = requestAnimationFrame(renderLoop);
+            }
+            renderLoop();
+
+            simInterval = setInterval(() => {
+                timeSec += 1;
+
+                let dT_heat = P_elec / (mass * c);
+                let dT_loss = (sysType === 'closed') ? K_COOLING * (currentSimTemp - T_room) : 0;
+                let dT_net = dT_heat - dT_loss;
+
+                currentSimTemp += dT_net;
+
+                const mins = String(Math.floor(timeSec / 60)).padStart(2, '0');
+                const secs = String(timeSec % 60).padStart(2, '0');
+                const noisyRealtimeTemp = (currentSimTemp + gaussianRandom(0, 0.15)).toFixed(2);
+
+                document.getElementById(isWater ? 'timer2' : 'timer3').innerText = `${mins}:${secs}`;
+                document.getElementById(isWater ? 'tempDisp2' : 'tempDisp3').innerText = noisyRealtimeTemp;
+
+                // Log Every 10 Seconds (Plot Chart + Update Table)
+                if (timeSec % 10 === 0) {
+                    targetChart.data.labels.push(timeSec);
+                    targetChart.data.datasets[0].data.push(noisyRealtimeTemp);
+                    targetChart.update();
+
+                    // Append row to HTML table
+                    logTable.innerHTML += `<tr class="border-b"><td class="p-1.5 font-mono">${timeSec}</td><td class="p-1.5 font-mono">${noisyRealtimeTemp}</td></tr>`;
+
+                    const logEntry = { Liquid: liquidName, System: sysType, Voltage_V: V, Current_A: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: noisyRealtimeTemp };
+                    if (isWater) expLogsPart2.push(logEntry);
+                    else expLogsPart3.push(logEntry);
+                }
+
+                if (currentSimTemp >= targetTemp) {
+                    clearInterval(simInterval);
+                    isHeaterActive = false;
+                    btn.disabled = false;
+                    btn.classList.remove('opacity-50');
+                    drawCalorimeter(tabNum, currentSimTemp, false);
+                    alert(`Experiment Complete (${liquidName} - ${sysType.toUpperCase()})\nTarget Temperature Reached: ${currentSimTemp.toFixed(2)} °C\nElapsed Time: ${timeSec} seconds`);
+                }
+            }, 1000);
+        }
+
+        function downloadCSV(part) {
+            let csvContent = "data:text/csv;charset=utf-8,";
+            let filename = "joule_lab_data.csv";
+
+            if (part === 1) {
+                if (expLogsPart1.length === 0) { alert("No Part 1 data recorded."); return; }
+                csvContent += "Trial,Voltage(V),MeasuredCurrent(A)\n";
+                expLogsPart1.forEach((r, idx) => { csvContent += `${idx + 1},${r.Voltage},${r.Current}\n`; });
+                filename = "part1_resistance_data.csv";
+            } else if (part === 2) {
+                if (expLogsPart2.length === 0) { alert("No Part 2 data recorded."); return; }
+                csvContent += "Liquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+                expLogsPart2.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                filename = "part2_water_heating_data.csv";
+            } else if (part === 3) {
+                if (expLogsPart3.length === 0) { alert("No Part 3 data recorded."); return; }
+                csvContent += "Liquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+                expLogsPart3.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                filename = "part3_ethanol_heating_data.csv";
+            } else if (part === 'all') {
+                if (expLogsPart1.length === 0 && expLogsPart2.length === 0 && expLogsPart3.length === 0) {
+                    alert("No experiment data recorded yet."); return;
+                }
+                csvContent += "=== PART 1: RESISTANCE ===\nTrial,Voltage(V),MeasuredCurrent(A)\n";
+                expLogsPart1.forEach((r, idx) => { csvContent += `${idx + 1},${r.Voltage},${r.Current}\n`; });
+                
+                csvContent += "\n=== PART 2: WATER HEATING ===\nLiquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+                expLogsPart2.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+
+                csvContent += "\n=== PART 3: ETHANOL HEATING ===\nLiquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+                expLogsPart3.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                
+                filename = "combined_joule_lab_data.csv";
+            }
+
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", filename);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
