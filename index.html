@@ -16,7 +16,7 @@
         <!-- Navigation Tabs & Master Export -->
         <div class="flex flex-wrap items-center justify-between border-b mb-6 gap-2">
             <div class="flex overflow-x-auto">
-                <button onclick="switchTab(0)" id="tab-0" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap">0) Guidance & Report</button>
+                <button onclick="switchTab(0)" id="tab-0" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap">Part 0: Guidance & Report</button>
                 <button onclick="switchTab(1)" id="tab-1" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 1: Resistance (R)</button>
                 <button onclick="switchTab(2)" id="tab-2" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 2: Heating Water</button>
                 <button onclick="switchTab(3)" id="tab-3" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 3: Heating Ethanol</button>
@@ -87,31 +87,35 @@
         </div>
 
         <!-- Part 2 Content -->
-        <div id="content-2" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-3">
-                <h3 class="font-bold text-lg text-blue-700">Water Setup</h3>
+        <div id="content-2" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-3 flex flex-col justify-between">
                 <div>
-                    <label class="block text-xs font-semibold">System Type:</label>
-                    <select id="sysType2" class="w-full p-1.5 border rounded text-xs bg-white font-medium" onchange="drawCalorimeter(2, parseFloat(document.getElementById('temp2').value), false)">
-                        <option value="isolated">Isolated System (Lid + Insulated)</option>
-                        <option value="closed">Closed System (Newton's Loss)</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold">Volume (cm³):</label>
-                    <input type="number" id="vol2" value="200" min="50" max="500" class="w-full p-1.5 border rounded text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold">Initial Temp (T_room) [°C]:</label>
-                    <input type="number" id="temp2" value="25" min="15" max="35" class="w-full p-1.5 border rounded text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold">Target Temp (°C, max 60):</label>
-                    <input type="number" id="targetTemp2" value="45" min="30" max="60" class="w-full p-1.5 border rounded text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold">Voltage (V):</label>
-                    <input type="number" id="v2" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
+                    <h3 class="font-bold text-lg text-blue-700 mb-3">Water Setup</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold">System Type:</label>
+                            <select id="sysType2" class="w-full p-1.5 border rounded text-xs bg-white font-medium" onchange="drawCalorimeter(2, parseFloat(document.getElementById('temp2').value), false)">
+                                <option value="isolated">Isolated System (Lid + Insulated)</option>
+                                <option value="closed">Closed System (Newton's Loss)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold">Volume (cm³):</label>
+                            <input type="number" id="vol2" value="200" min="50" max="500" class="w-full p-1.5 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold">Initial Temp (T_room) [°C]:</label>
+                            <input type="number" id="temp2" value="25" min="15" max="35" class="w-full p-1.5 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold">Target Temp (°C, max 60):</label>
+                            <input type="number" id="targetTemp2" value="45" min="30" max="60" class="w-full p-1.5 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold">Voltage (V):</label>
+                            <input type="number" id="v2" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
+                        </div>
+                    </div>
                 </div>
                 
                 <!-- Action Buttons -->
@@ -122,12 +126,12 @@
                         <button onclick="resumeSimulation(2)" id="resumeBtn2" disabled class="bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg font-medium text-xs opacity-50">Resume</button>
                     </div>
                     <button onclick="resetSimulation(2)" id="resetBtn2" class="w-full bg-rose-500 hover:bg-rose-600 text-white py-1.5 rounded-lg font-medium text-xs">Reset</button>
+                    <button onclick="downloadCSV(2)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 mt-2">
+                        📥 Download Part 2 CSV
+                    </button>
                 </div>
-
-                <button onclick="downloadCSV(2)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 mt-2">
-                    📥 Download Part 2 CSV
-                </button>
             </div>
+
             <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center relative">
                 <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (Water)</h4>
                 <div class="flex gap-4 text-xs font-mono font-bold mb-1 bg-white px-3 py-1 rounded border shadow-sm">
@@ -136,15 +140,16 @@
                 </div>
                 <canvas id="animCanvas2" width="220" height="240" class="border bg-slate-200 rounded-lg shadow-inner"></canvas>
             </div>
-            <div class="lg:col-span-5 bg-slate-50 p-4 rounded-lg border space-y-4">
-                <div class="h-52">
+
+            <div class="lg:col-span-5 bg-slate-50 p-4 rounded-lg border flex flex-col justify-between space-y-3">
+                <div class="h-48">
                     <canvas id="chart2" class="w-full h-full"></canvas>
                 </div>
-                <div>
+                <div class="flex-1 flex flex-col">
                     <h4 class="font-bold text-xs text-slate-700 mb-1">Live Data Log (10s Intervals)</h4>
-                    <div class="overflow-y-auto max-h-36 border rounded bg-white">
+                    <div class="overflow-y-auto max-h-[280px] border rounded bg-white flex-1">
                         <table class="w-full text-xs text-left border-collapse">
-                            <thead><tr class="bg-slate-200 sticky top-0"><th class="p-1.5">Time (s)</th><th class="p-1.5">Temp (°C)</th></tr></thead>
+                            <thead><tr class="bg-slate-200 sticky top-0"><th class="p-2">Time (s)</th><th class="p-2">Temp (°C)</th></tr></thead>
                             <tbody id="p2LogTable"></tbody>
                         </table>
                     </div>
@@ -153,28 +158,32 @@
         </div>
 
         <!-- Part 3 Content -->
-        <div id="content-3" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6">
-            <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-3">
-                <h3 class="font-bold text-lg text-purple-700">Ethanol Setup</h3>
+        <div id="content-3" class="tab-content hidden grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            <div class="lg:col-span-3 bg-slate-50 p-4 rounded-lg border space-y-3 flex flex-col justify-between">
                 <div>
-                    <label class="block text-xs font-semibold">System Type:</label>
-                    <input type="text" value="Closed System (Newton's Loss)" disabled class="w-full p-1.5 border rounded text-xs bg-gray-200 font-semibold text-gray-700 cursor-not-allowed">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold">Volume (cm³):</label>
-                    <input type="number" id="vol3" value="200" min="50" max="500" class="w-full p-1.5 border rounded text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold">Initial Temp (T_room) [°C]:</label>
-                    <input type="number" id="temp3" value="25" min="15" max="35" class="w-full p-1.5 border rounded text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold">Target Temp (°C, max 60):</label>
-                    <input type="number" id="targetTemp3" value="45" min="30" max="60" class="w-full p-1.5 border rounded text-sm">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold">Voltage (V):</label>
-                    <input type="number" id="v3" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
+                    <h3 class="font-bold text-lg text-purple-700 mb-3">Ethanol Setup</h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs font-semibold">System Type:</label>
+                            <input type="text" value="Closed System (Newton's Loss)" disabled class="w-full p-1.5 border rounded text-xs bg-gray-200 font-semibold text-gray-700 cursor-not-allowed">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold">Volume (cm³):</label>
+                            <input type="number" id="vol3" value="200" min="50" max="500" class="w-full p-1.5 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold">Initial Temp (T_room) [°C]:</label>
+                            <input type="number" id="temp3" value="25" min="15" max="35" class="w-full p-1.5 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold">Target Temp (°C, max 60):</label>
+                            <input type="number" id="targetTemp3" value="45" min="30" max="60" class="w-full p-1.5 border rounded text-sm">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-semibold">Voltage (V):</label>
+                            <input type="number" id="v3" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Action Buttons -->
@@ -185,12 +194,12 @@
                         <button onclick="resumeSimulation(3)" id="resumeBtn3" disabled class="bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg font-medium text-xs opacity-50">Resume</button>
                     </div>
                     <button onclick="resetSimulation(3)" id="resetBtn3" class="w-full bg-rose-500 hover:bg-rose-600 text-white py-1.5 rounded-lg font-medium text-xs">Reset</button>
+                    <button onclick="downloadCSV(3)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 mt-2">
+                        📥 Download Part 3 CSV
+                    </button>
                 </div>
-
-                <button onclick="downloadCSV(3)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 mt-2">
-                    📥 Download Part 3 CSV
-                </button>
             </div>
+
             <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center relative">
                 <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (Ethanol)</h4>
                 <div class="flex gap-4 text-xs font-mono font-bold mb-1 bg-white px-3 py-1 rounded border shadow-sm">
@@ -199,15 +208,16 @@
                 </div>
                 <canvas id="animCanvas3" width="220" height="240" class="border bg-slate-200 rounded-lg shadow-inner"></canvas>
             </div>
-            <div class="lg:col-span-5 bg-slate-50 p-4 rounded-lg border space-y-4">
-                <div class="h-52">
+
+            <div class="lg:col-span-5 bg-slate-50 p-4 rounded-lg border flex flex-col justify-between space-y-3">
+                <div class="h-48">
                     <canvas id="chart3" class="w-full h-full"></canvas>
                 </div>
-                <div>
+                <div class="flex-1 flex flex-col">
                     <h4 class="font-bold text-xs text-slate-700 mb-1">Live Data Log (10s Intervals)</h4>
-                    <div class="overflow-y-auto max-h-36 border rounded bg-white">
+                    <div class="overflow-y-auto max-h-[280px] border rounded bg-white flex-1">
                         <table class="w-full text-xs text-left border-collapse">
-                            <thead><tr class="bg-slate-200 sticky top-0"><th class="p-1.5">Time (s)</th><th class="p-1.5">Temp (°C)</th></tr></thead>
+                            <thead><tr class="bg-slate-200 sticky top-0"><th class="p-2">Time (s)</th><th class="p-2">Temp (°C)</th></tr></thead>
                             <tbody id="p3LogTable"></tbody>
                         </table>
                     </div>
@@ -345,7 +355,7 @@
             ctx.lineWidth = 1;
             ctx.strokeRect(145, 15, 12, 175);
 
-            // Thermometer Tick Marks (ขีดสเกลเทอร์โมมิเตอร์)
+            // Thermometer Tick Marks
             ctx.strokeStyle = '#475569';
             ctx.lineWidth = 0.8;
             for (let y = 25; y <= 165; y += 7) {
@@ -472,7 +482,7 @@
                     targetChart.data.datasets[0].data.push(noisyRealtimeTemp);
                     targetChart.update();
 
-                    logTable.innerHTML += `<tr class="border-b"><td class="p-1.5 font-mono">${timeSec}</td><td class="p-1.5 font-mono">${noisyRealtimeTemp}</td></tr>`;
+                    logTable.innerHTML += `<tr class="border-b"><td class="p-2 font-mono">${timeSec}</td><td class="p-2 font-mono">${noisyRealtimeTemp}</td></tr>`;
 
                     const logEntry = { Liquid: liquidName, System: sysType, Voltage_V: V, Time_s: timeSec, Temp_C: noisyRealtimeTemp };
                     if (isWater) expLogsPart2.push(logEntry); else expLogsPart3.push(logEntry);
