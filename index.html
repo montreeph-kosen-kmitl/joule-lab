@@ -22,13 +22,12 @@
 
         <!-- Global Settings -->
         <div class="bg-slate-50 p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center justify-between border">
-            <div class="flex items-center gap-2">
-                <span class="font-medium text-sm md:text-base">System Mode:</span>
-                <label class="inline-flex items-center cursor-pointer">
-                    <input type="checkbox" id="lossToggle" class="sr-only peer">
-                    <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 relative"></div>
-                    <span class="ml-3 text-sm font-medium text-slate-700" id="lossLabel">Ideal System (100% Insulated)</span>
-                </label>
+            <div class="flex items-center gap-3">
+                <span class="font-medium text-sm md:text-base">System Type:</span>
+                <select id="systemTypeSelect" onchange="handleSystemTypeChange()" class="p-2 border rounded-lg bg-white font-semibold text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <option value="isolated">Isolated System (Lid + Insulated, Ideal 100%)</option>
+                    <option value="closed">Closed System (Lid only, Newton's Cooling Law)</option>
+                </select>
             </div>
             <button onclick="downloadCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
                 📥 Download Summary Data (CSV)
@@ -77,8 +76,12 @@
                 <button onclick="startSimulation(2)" id="startBtn2" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">Start Heating (Water)</button>
             </div>
             <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center relative">
-                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (Closed System)</h4>
-                <div class="text-xs font-mono font-bold text-blue-600 mb-1">Time Elapsed: <span id="timer2">00:00</span></div>
+                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (<span id="sysTitle2">Isolated</span>)</h4>
+                <!-- Real-time Digital Indicators -->
+                <div class="flex gap-4 text-xs font-mono font-bold mb-1 bg-white px-3 py-1 rounded border shadow-sm">
+                    <span class="text-blue-600">Time: <span id="timer2">00:00</span></span>
+                    <span class="text-red-600">Temp: <span id="tempDisp2">25.00</span> °C</span>
+                </div>
                 <canvas id="animCanvas2" width="220" height="240" class="border bg-slate-200 rounded-lg shadow-inner"></canvas>
             </div>
             <div class="lg:col-span-5 bg-slate-50 p-4 rounded-lg border">
@@ -109,8 +112,12 @@
                 <button onclick="startSimulation(3)" id="startBtn3" class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700">Start Heating (Ethanol)</button>
             </div>
             <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col items-center justify-center relative">
-                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (Closed System)</h4>
-                <div class="text-xs font-mono font-bold text-purple-600 mb-1">Time Elapsed: <span id="timer3">00:00</span></div>
+                <h4 class="font-semibold text-xs mb-1 text-slate-600">Calorimeter Model (<span id="sysTitle3">Closed</span>)</h4>
+                <!-- Real-time Digital Indicators -->
+                <div class="flex gap-4 text-xs font-mono font-bold mb-1 bg-white px-3 py-1 rounded border shadow-sm">
+                    <span class="text-purple-600">Time: <span id="timer3">00:00</span></span>
+                    <span class="text-red-600">Temp: <span id="tempDisp3">25.00</span> °C</span>
+                </div>
                 <canvas id="animCanvas3" width="220" height="240" class="border bg-slate-200 rounded-lg shadow-inner"></canvas>
             </div>
             <div class="lg:col-span-5 bg-slate-50 p-4 rounded-lg border">
@@ -125,7 +132,9 @@
         const RHO_WATER = 1.0; 
         const C_ETHANOL = 2.440; 
         const RHO_ETHANOL = 0.789; 
+        const K_COOLING = 0.0005; // 5 * 10^-4 per second
 
+        let activeTab = 1;
         let p1Data = [];
         let expLogs = []; 
         let simInterval = null;
@@ -136,7 +145,6 @@
         let currentSimTemp = 25;
         let isHeaterActive = false;
 
-        // Gaussian Noise Generator (Box-Muller)
         function gaussianRandom(mean = 0, stdev = 0.15) {
             let u = 1 - Math.random();
             let v = Math.random();
@@ -144,13 +152,26 @@
             return mean + z * stdev;
         }
 
-        document.getElementById('lossToggle').addEventListener('change', (e) => {
-            document.getElementById('lossLabel').innerText = e.target.checked 
-                ? "Realistic System (Heat Loss Active)" 
-                : "Ideal System (100% Insulated)";
-        });
+        function handleSystemTypeChange() {
+            const sysSelect = document.getElementById('systemTypeSelect');
+            if (activeTab === 3 && sysSelect.value === 'isolated') {
+                alert("Ethanol experiments are restricted to Closed System mode only.");
+                sysSelect.value = 'closed';
+            }
+            updateSystemTitles();
+            if (activeTab === 2) drawCalorimeter(2, parseFloat(document.getElementById('temp2').value), false);
+            if (activeTab === 3) drawCalorimeter(3, parseFloat(document.getElementById('temp3').value), false);
+        }
+
+        function updateSystemTitles() {
+            const sysVal = document.getElementById('systemTypeSelect').value;
+            const title = sysVal === 'isolated' ? 'Isolated System' : 'Closed System';
+            document.getElementById('sysTitle2').innerText = title;
+            document.getElementById('sysTitle3').innerText = title;
+        }
 
         function switchTab(tabNum) {
+            activeTab = tabNum;
             [1, 2, 3].forEach(n => {
                 document.getElementById(`tab-${n}`).className = n === tabNum 
                     ? "py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap"
@@ -160,13 +181,23 @@
 
             document.getElementById(`content-${tabNum}`).classList.remove('hidden');
 
+            const sysSelect = document.getElementById('systemTypeSelect');
+            if (tabNum === 3) {
+                // Force Closed System for Ethanol
+                sysSelect.value = 'closed';
+                sysSelect.options[0].disabled = true;
+            } else {
+                sysSelect.options[0].disabled = false;
+            }
+            updateSystemTitles();
+
             if (tabNum === 2) {
                 if (!chart2) initChart(2);
-                drawCalorimeter(2, 25, false);
+                drawCalorimeter(2, parseFloat(document.getElementById('temp2').value), false);
             }
             if (tabNum === 3) {
                 if (!chart3) initChart(3);
-                drawCalorimeter(3, 25, false);
+                drawCalorimeter(3, parseFloat(document.getElementById('temp3').value), false);
             }
         }
 
@@ -180,7 +211,7 @@
             const I_measured = (I_true + gaussianRandom(0, 0.03)).toFixed(2);
             
             p1Data.push({ V, I: I_measured });
-            expLogs.push({ Tab: "Part 1", Liquid: "-", V, I: I_measured, Time_s: "-", Temp_C: "-" });
+            expLogs.push({ Tab: "Part 1", Liquid: "-", System: "-", V, I: I_measured, Time_s: "-", Temp_C: "-" });
 
             const tbody = document.getElementById('p1Table');
             tbody.innerHTML += `<tr class="border-b"><td class="p-2">${p1Data.length}</td><td class="p-2">${V}</td><td class="p-2">${I_measured}</td></tr>`;
@@ -201,40 +232,45 @@
             if (tabNum === 3) chart3 = newChart;
         }
 
-        // Draw Closed System Calorimeter
         function drawCalorimeter(tabNum, temp, isHeating) {
             const canvas = document.getElementById(tabNum === 2 ? 'animCanvas2' : 'animCanvas3');
             if(!canvas) return;
             const ctx = canvas.getContext('2d');
             const w = canvas.width, h = canvas.height;
+            const isIsolated = document.getElementById('systemTypeSelect').value === 'isolated';
 
             ctx.clearRect(0, 0, w, h);
 
-            // Outer Insulated Vessel Wall
-            ctx.fillStyle = '#cbd5e1';
-            ctx.fillRect(25, 45, 170, 180);
-            ctx.strokeStyle = '#475569';
-            ctx.lineWidth = 3;
-            ctx.strokeRect(25, 45, 170, 180);
+            // Outer Insulated Vessel
+            ctx.fillStyle = isIsolated ? '#94a3b8' : '#cbd5e1'; // Darker jacket for isolated insulation
+            ctx.fillRect(20, 45, 180, 180);
+            ctx.strokeStyle = '#334155';
+            ctx.lineWidth = isIsolated ? 5 : 3;
+            ctx.strokeRect(20, 45, 180, 180);
+
+            // Insulation Layer Tag if Isolated
+            if (isIsolated) {
+                ctx.fillStyle = '#f1f5f9';
+                ctx.fillRect(25, 50, 170, 10);
+            }
 
             // Liquid Fill
             const liquidColor = tabNum === 2 ? 'rgba(59, 130, 246, 0.65)' : 'rgba(168, 85, 247, 0.65)';
             ctx.fillStyle = liquidColor;
             ctx.fillRect(35, 100, 150, 115);
 
-            // Closed Lid (Top Cap)
-            ctx.fillStyle = '#334155';
-            ctx.fillRect(20, 35, 180, 15);
+            // Closed Lid
+            ctx.fillStyle = '#1e293b';
+            ctx.fillRect(15, 35, 190, 15);
 
             // U-Shaped Heating Element (Left Side)
             ctx.strokeStyle = isHeating ? '#ef4444' : '#64748b';
             ctx.lineWidth = 5;
             ctx.lineCap = 'round';
 
-            // Insulated terminals going left
             ctx.beginPath();
             ctx.moveTo(10, 20); ctx.lineTo(60, 20); ctx.lineTo(60, 180);
-            ctx.arc(72.5, 180, 12, Math.PI, 0, true); // U-bend
+            ctx.arc(72.5, 180, 12, Math.PI, 0, true);
             ctx.lineTo(85, 20); ctx.lineTo(10, 20);
             ctx.stroke();
 
@@ -283,6 +319,7 @@
 
             const isWater = tabNum === 2;
             const liquidName = isWater ? "Water" : "Ethanol";
+            const sysType = document.getElementById('systemTypeSelect').value;
             const c = isWater ? C_WATER : C_ETHANOL;
             const rho = isWater ? RHO_WATER : RHO_ETHANOL;
             const targetChart = isWater ? chart2 : chart3;
@@ -298,15 +335,16 @@
             const V = parseFloat(document.getElementById(isWater ? 'v2' : 'v3').value);
             const P_elec = (V * V) / R_TRUE;
 
-            const hasLoss = document.getElementById('lossToggle').checked;
-            const k = 0.04;
             const T_room = 25.0;
-
             let timeSec = 0;
             isHeaterActive = true;
             const btn = document.getElementById(isWater ? 'startBtn2' : 'startBtn3');
             btn.disabled = true;
             btn.classList.add('opacity-50');
+
+            // Initial Display Update
+            document.getElementById(isWater ? 'tempDisp2' : 'tempDisp3').innerText = currentSimTemp.toFixed(2);
+            document.getElementById(isWater ? 'timer2' : 'timer3').innerText = "00:00";
 
             function renderLoop() {
                 drawCalorimeter(tabNum, currentSimTemp, isHeaterActive);
@@ -314,49 +352,51 @@
             }
             renderLoop();
 
-            // 1 Second Real-time Clock Loop
+            // 1 Second Real-time Loop
             simInterval = setInterval(() => {
                 timeSec += 1;
 
-                // Update Timer UI (MM:SS)
+                // Heat Calculations
+                let dT_heat = P_elec / (mass * c);
+                let dT_loss = (sysType === 'closed') ? K_COOLING * (currentSimTemp - T_room) : 0;
+                let dT_net = dT_heat - dT_loss;
+
+                currentSimTemp += dT_net;
+
+                // Update UI Real-time Indicators
                 const mins = String(Math.floor(timeSec / 60)).padStart(2, '0');
                 const secs = String(timeSec % 60).padStart(2, '0');
-                document.getElementById(isWater ? 'timer2' : 'timer3').innerText = `${mins}:${secs}`;
+                const noisyRealtimeTemp = (currentSimTemp + gaussianRandom(0, 0.15)).toFixed(2);
 
-                // Heat Calculations
-                let P_loss = hasLoss ? k * (currentSimTemp - T_room) : 0;
-                let P_net = Math.max(0, P_elec - P_loss);
-                let dT = P_net / (mass * c); // dT per second
-                currentSimTemp += dT;
+                document.getElementById(isWater ? 'timer2' : 'timer3').innerText = `${mins}:${secs}`;
+                document.getElementById(isWater ? 'tempDisp2' : 'tempDisp3').innerText = noisyRealtimeTemp;
 
                 // Record & Plot Data EVERY 10 SECONDS
                 if (timeSec % 10 === 0) {
-                    const measuredTemp = (currentSimTemp + gaussianRandom(0, 0.15)).toFixed(2);
-
                     targetChart.data.labels.push(timeSec);
-                    targetChart.data.datasets[0].data.push(measuredTemp);
+                    targetChart.data.datasets[0].data.push(noisyRealtimeTemp);
                     targetChart.update();
 
-                    expLogs.push({ Tab: `Part ${tabNum}`, Liquid: liquidName, V, I: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: measuredTemp });
+                    expLogs.push({ Tab: `Part ${tabNum}`, Liquid: liquidName, System: sysType, V, I: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: noisyRealtimeTemp });
                 }
 
-                // Stop conditions: Target Temp reached or 10 minutes limit
-                if (currentSimTemp >= targetTemp || timeSec >= 600) {
+                // Stop condition: Target Temperature Reached
+                if (currentSimTemp >= targetTemp) {
                     clearInterval(simInterval);
                     isHeaterActive = false;
                     btn.disabled = false;
                     btn.classList.remove('opacity-50');
                     drawCalorimeter(tabNum, currentSimTemp, false);
-                    alert(`Experiment Complete (${liquidName})\nFinal Temperature: ${currentSimTemp.toFixed(2)} °C\nElapsed Time: ${timeSec} seconds`);
+                    alert(`Experiment Complete (${liquidName} - ${sysType.toUpperCase()})\nTarget Temperature Reached: ${currentSimTemp.toFixed(2)} °C\nElapsed Time: ${timeSec} seconds`);
                 }
             }, 1000); // 1000ms = 1 real second
         }
 
         function downloadCSV() {
             if (expLogs.length === 0) { alert("No experiment data recorded yet."); return; }
-            let csvContent = "data:text/csv;charset=utf-8,Tab,Liquid,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+            let csvContent = "data:text/csv;charset=utf-8,Tab,Liquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
             expLogs.forEach(r => {
-                csvContent += `${r.Tab},${r.Liquid},${r.V},${r.I},${r.Time_s},${r.Temp_C}\n`;
+                csvContent += `${r.Tab},${r.Liquid},${r.System},${r.V},${r.I},${r.Time_s},${r.Temp_C}\n`;
             });
             const encodedUri = encodeURI(csvContent);
             const link = document.createElement("a");
