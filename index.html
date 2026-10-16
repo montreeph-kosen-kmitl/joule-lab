@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Joule's Law & Calorimeter Virtual Lab</title>
+    <!-- Tailwind CSS & Chart.js -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 p-4 md:p-8">
+    <div class="max-w-6xl mx-auto bg-white p-6 rounded-xl shadow-md">
+        <h1 class="text-2xl font-bold text-center text-blue-700 mb-2">ชุดการทดลองเสมือนจริง: กฎของจูลและความจุความร้อนจำเพาะ</h1>
+        <p class="text-center text-slate-500 mb-6">Virtual Calorimeter Laboratory Simulator</p>
+
+        <!-- Navigation Tabs -->
+        <div class="flex border-b mb-6">
+            <button onclick="switchTab(1)" id="tab-1" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600">ตอนที่ 1: หาค่า R ของขดลวด</button>
+            <button onclick="switchTab(2)" id="tab-2" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500">ตอนที่ 2: ต้มน้ำ (Water)</button>
+            <button onclick="switchTab(3)" id="tab-3" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500">ตอนที่ 3: ต้มแอลกอฮอล์ (Ethanol)</button>
+        </div>
+
+        <!-- Global Settings -->
+        <div class="bg-slate-50 p-4 rounded-lg mb-6 flex flex-wrap gap-4 items-center justify-between border">
+            <div class="flex items-center gap-2">
+                <span class="font-medium">โหมดการทดลอง:</span>
+                <label class="inline-flex items-center cursor-pointer">
+                    <input type="checkbox" id="lossToggle" class="sr-only peer">
+                    <div class="w-11 h-6 bg-gray-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600 relative"></div>
+                    <span class="ml-3 text-sm font-medium text-slate-700" id="lossLabel">Ideal 100% (ไม่มี Heat Loss)</span>
+                </label>
+            </div>
+            <button onclick="downloadCSV()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2">
+                📥 ดาวน์โหลดข้อมูลสรุป (CSV)
+            </button>
+        </div>
+
+        <!-- Tab 1 Content -->
+        <div id="content-1" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-50 p-4 rounded-lg border">
+                <h3 class="font-bold text-lg mb-4">ตั้งค่าแรงดันไฟฟ้า (V)</h3>
+                <label class="block text-sm mb-1">ความต่างศักย์: <span id="vVal">12</span> V</label>
+                <input type="range" id="vInput" min="2" max="24" step="2" value="12" class="w-full mb-4" oninput="updatePart1()">
+                <button onclick="recordPart1Data()" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">บันทึกค่ากระแสไฟฟ้า (I)</button>
+            </div>
+            <div class="md:col-span-2 bg-slate-50 p-4 rounded-lg border">
+                <h3 class="font-bold text-lg mb-2">ตารางบันทึกผล ตอนที่ 1</h3>
+                <div class="overflow-y-auto max-h-48">
+                    <table class="w-full text-sm text-left border-collapse">
+                        <thead><tr class="bg-slate-200"><th class="p-2">ครั้งที่</th><th class="p-2">V (Volts)</th><th class="p-2">I Measured (A) [±5% Error]</th></tr></thead>
+                        <tbody id="p1Table"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tab 2 & 3 Content -->
+        <div id="content-2" class="tab-content hidden grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-slate-50 p-4 rounded-lg border space-y-4">
+                <h3 class="font-bold text-lg" id="liquidTitle">ตั้งค่าการทดลอง</h3>
+                <div>
+                    <label class="block text-sm">ปริมาตรของเหลว ($cm^3$):</label>
+                    <input type="number" id="volumeInput" value="200" min="50" max="500" class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm">อุณหภูมิเริ่มต้น ($^\circ C$):</label>
+                    <input type="number" id="tempInitInput" value="25" min="15" max="35" class="w-full p-2 border rounded">
+                </div>
+                <div>
+                    <label class="block text-sm">เลือกใช้แรงดันไฟฟ้า (V):</label>
+                    <input type="number" id="vSimInput" value="12" min="2" max="24" class="w-full p-2 border rounded">
+                </div>
+                <button onclick="startSimulation()" id="startBtn" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700">เริ่มการทดลอง</button>
+            </div>
+            <div class="md:col-span-2 bg-slate-50 p-4 rounded-lg border">
+                <canvas id="tempChart" class="w-full h-64"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Physics Constants
+        const R_TRUE = 4.0; // ค่าความต้านทานจริงของขดลวด (Ohms)
+        const C_WATER = 4.184; // J/(g·°C)
+        const RHO_WATER = 1.0; // g/cm³
+        const C_ETHANOL = 2.440; // J/(g·°C)
+        const RHO_ETHANOL = 0.789; // g/cm³
+
+        let currentTab = 1;
+        let p1Data = [];
+        let expLogs = []; // สำหรับดาวน์โหลด CSV
+        let simInterval = null;
+        let chart = null;
+
+        // Loss toggle listener
+        document.getElementById('lossToggle').addEventListener('change', (e) => {
+            document.getElementById('lossLabel').innerText = e.target.checked 
+                ? "Realistic (มีสูญเสียความร้อน)" 
+                : "Ideal 100% (ไม่มี Heat Loss)";
+        });
+
+        function switchTab(tabNum) {
+            currentTab = tabNum;
+            [1, 2, 3].forEach(n => {
+                document.getElementById(`tab-${n}`).className = n === tabNum 
+                    ? "py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600"
+                    : "py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500";
+                document.getElementById(`content-${n}`).classList.add('hidden');
+            });
+
+            if (tabNum === 1) {
+                document.getElementById('content-1').classList.remove('hidden');
+            } else {
+                document.getElementById('content-2').classList.remove('hidden');
+                document.getElementById('liquidTitle').innerText = tabNum === 2 ? "ตั้งค่าการทดลอง: น้ำ" : "ตั้งค่าการทดลอง: แอลกอฮอล์";
+                initChart();
+            }
+        }
+
+        function updatePart1() {
+            document.getElementById('vVal').innerText = document.getElementById('vInput').value;
+        }
+
+        function recordPart1Data() {
+            const V = parseFloat(document.getElementById('vInput').value);
+            const I_true = V / R_TRUE;
+            const error = 1 + (Math.random() * 0.1 - 0.05); // Random error ±5%
+            const I_measured = (I_true * error).toFixed(2);
+            
+            p1Data.push({ V, I: I_measured });
+            expLogs.push({ Tab: "ตอนที่ 1", Liquid: "-", V, I: I_measured, Time_s: "-", Temp_C: "-" });
+
+            const tbody = document.getElementById('p1Table');
+            tbody.innerHTML += `<tr class="border-b"><td class="p-2">${p1Data.length}</td><td class="p-2">${V}</td><td class="p-2">${I_measured}</td></tr>`;
+        }
+
+        function initChart() {
+            const ctx = document.getElementById('tempChart').getContext('2d');
+            if(chart) chart.destroy();
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'อุณหภูมิ (°C)', data: [], borderColor: '#2563eb', fill: false }] },
+                options: { responsive: true, scales: { x: { title: { display: true, text: 'เวลา (วินาที)' } }, y: { title: { display: true, text: 'อุณหภูมิ (°C)' }, max: 55 } } }
+            });
+        }
+
+        function startSimulation() {
+            clearInterval(simInterval);
+            initChart();
+
+            const isWater = currentTab === 2;
+            const liquidName = isWater ? "Water" : "Ethanol";
+            const c = isWater ? C_WATER : C_ETHANOL;
+            const rho = isWater ? RHO_WATER : RHO_ETHANOL;
+
+            const vol = parseFloat(document.getElementById('volumeInput').value);
+            const mass = vol * rho; // มวล (กรัม)
+            let currentTemp = parseFloat(document.getElementById('tempInitInput').value);
+            const V = parseFloat(document.getElementById('vSimInput').value);
+            const P_elec = (V * V) / R_TRUE; // พลังงานไฟฟ้า (วัตต์)
+
+            const hasLoss = document.getElementById('lossToggle').checked;
+            const k = 0.05; // Coefficient การสูญเสียความร้อน
+            const T_room = 25.0;
+
+            let timeSec = 0;
+            const btn = document.getElementById('startBtn');
+            btn.disabled = true;
+            btn.classList.add('bg-gray-400');
+
+            simInterval = setInterval(() => {
+                timeSec += 5; // อัพเดททุกๆ 5 วินาทีจำลอง
+
+                let P_loss = hasLoss ? k * (currentTemp - T_room) : 0;
+                let P_net = Math.max(0, P_elec - P_loss);
+                let dT = (P_net * 5) / (mass * c);
+                currentTemp += dT;
+
+                // เพิ่ม Noise ±5% ให้กับค่าอุณหภูมิที่แสดงผล
+                const noise = 1 + (Math.random() * 0.02 - 0.01);
+                const measuredTemp = (currentTemp * noise).toFixed(2);
+
+                chart.data.labels.push(timeSec);
+                chart.data.datasets[0].data.push(measuredTemp);
+                chart.update();
+
+                expLogs.push({ Tab: `ตอนที่ ${currentTab}`, Liquid: liquidName, V, I: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: measuredTemp });
+
+                // เงื่อนไขหยุด: อุณหภูมิเกิน 50°C หรือเวลาเกิน 10 นาที (600 วินาที)
+                if (currentTemp >= 50 || timeSec >= 600) {
+                    clearInterval(simInterval);
+                    btn.disabled = false;
+                    btn.classList.remove('bg-gray-400');
+                    alert(`จบการทดลอง (${liquidName}): สิ้นสุดที่อุณหภูมิ ${measuredTemp} °C เวลา ${timeSec} วินาที`);
+                }
+            }, 300); // 300ms = 1 step
+        }
+
+        function downloadCSV() {
+            if (expLogs.length === 0) { alert("ยังไม่มีข้อมูลการทดลอง"); return; }
+            let csvContent = "data:text/csv;charset=utf-8,Tab,Liquid,Voltage(V),Current(A),Time(s),Temp(degC)\n";
+            expLogs.forEach(r => {
+                csvContent += `${r.Tab},${r.Liquid},${r.V},${r.I},${r.Time_s},${r.Temp_C}\n`;
+            });
+            const encodedUri = encodeURI(csvContent);
+            const link = document.createElement("a");
+            link.setAttribute("href", encodedUri);
+            link.setAttribute("download", "joule_lab_results.csv");
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+    </script>
+</body>
+</html>
