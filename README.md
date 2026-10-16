@@ -1,7 +1,7 @@
 # 🧪 Joule's Law & Specific Heat Capacity Virtual Lab
-**----------------------------------------------------------------------**
+
 Provided website: https://montreeph-kosen-kmitl.github.io/joule-lab/
-**----------------------------------------------------------------------**
+
 Welcome to the **Joule's Law & Specific Heat Capacity Virtual Laboratory**—an interactive simulation web application designed for learning and teaching physics concepts related to **Joule's Law** and **Specific Heat Capacity**.
 
 ---
