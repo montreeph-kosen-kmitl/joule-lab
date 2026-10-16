@@ -51,7 +51,6 @@
                         📄 Download Lab Report Template (report.pdf)
                     </a>
                 </div>
-                <!-- Deadline Notice Box -->
                 <div class="bg-amber-50 border-l-4 border-amber-500 p-3.5 rounded-r-lg">
                     <div class="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wide">
                         ⚠️ Submission Notice
@@ -114,8 +113,18 @@
                     <label class="block text-xs font-semibold">Voltage (V):</label>
                     <input type="number" id="v2" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
                 </div>
-                <button onclick="startSimulation(2)" id="startBtn2" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 text-sm">Start Heating (Water)</button>
-                <button onclick="downloadCSV(2)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1">
+                
+                <!-- Action Buttons -->
+                <div class="space-y-2 pt-2">
+                    <button onclick="startSimulation(2)" id="startBtn2" class="w-full bg-blue-600 text-white py-2 rounded-lg font-medium hover:bg-blue-700 text-sm">Start Heating</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="pauseSimulation(2)" id="pauseBtn2" disabled class="bg-amber-500 hover:bg-amber-600 text-white py-1.5 rounded-lg font-medium text-xs opacity-50">Pause</button>
+                        <button onclick="resumeSimulation(2)" id="resumeBtn2" disabled class="bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg font-medium text-xs opacity-50">Resume</button>
+                    </div>
+                    <button onclick="resetSimulation(2)" id="resetBtn2" class="w-full bg-rose-500 hover:bg-rose-600 text-white py-1.5 rounded-lg font-medium text-xs">Reset</button>
+                </div>
+
+                <button onclick="downloadCSV(2)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 mt-2">
                     📥 Download Part 2 CSV
                 </button>
             </div>
@@ -131,7 +140,6 @@
                 <div class="h-52">
                     <canvas id="chart2" class="w-full h-full"></canvas>
                 </div>
-                <!-- 10-Second Data Table Log -->
                 <div>
                     <h4 class="font-bold text-xs text-slate-700 mb-1">Live Data Log (10s Intervals)</h4>
                     <div class="overflow-y-auto max-h-36 border rounded bg-white">
@@ -168,8 +176,18 @@
                     <label class="block text-xs font-semibold">Voltage (V):</label>
                     <input type="number" id="v3" value="12" min="2" max="24" class="w-full p-1.5 border rounded text-sm">
                 </div>
-                <button onclick="startSimulation(3)" id="startBtn3" class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 text-sm">Start Heating (Ethanol)</button>
-                <button onclick="downloadCSV(3)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1">
+
+                <!-- Action Buttons -->
+                <div class="space-y-2 pt-2">
+                    <button onclick="startSimulation(3)" id="startBtn3" class="w-full bg-purple-600 text-white py-2 rounded-lg font-medium hover:bg-purple-700 text-sm">Start Heating</button>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button onclick="pauseSimulation(3)" id="pauseBtn3" disabled class="bg-amber-500 hover:bg-amber-600 text-white py-1.5 rounded-lg font-medium text-xs opacity-50">Pause</button>
+                        <button onclick="resumeSimulation(3)" id="resumeBtn3" disabled class="bg-emerald-600 hover:bg-emerald-700 text-white py-1.5 rounded-lg font-medium text-xs opacity-50">Resume</button>
+                    </div>
+                    <button onclick="resetSimulation(3)" id="resetBtn3" class="w-full bg-rose-500 hover:bg-rose-600 text-white py-1.5 rounded-lg font-medium text-xs">Reset</button>
+                </div>
+
+                <button onclick="downloadCSV(3)" class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1 mt-2">
                     📥 Download Part 3 CSV
                 </button>
             </div>
@@ -185,7 +203,6 @@
                 <div class="h-52">
                     <canvas id="chart3" class="w-full h-full"></canvas>
                 </div>
-                <!-- 10-Second Data Table Log -->
                 <div>
                     <h4 class="font-bold text-xs text-slate-700 mb-1">Live Data Log (10s Intervals)</h4>
                     <div class="overflow-y-auto max-h-36 border rounded bg-white">
@@ -212,13 +229,14 @@
         let expLogsPart2 = [];
         let expLogsPart3 = [];
 
-        let simInterval = null;
-        let animFrameId = null;
+        let simInterval2 = null, simInterval3 = null;
+        let animFrameId2 = null, animFrameId3 = null;
         let chart2 = null, chart3 = null;
 
-        let bubbles = [];
-        let currentSimTemp = 25;
-        let isHeaterActive = false;
+        let bubbles2 = [], bubbles3 = [];
+        let currentSimTemp2 = 25, currentSimTemp3 = 25;
+        let timeSec2 = 0, timeSec3 = 0;
+        let isHeaterActive2 = false, isHeaterActive3 = false;
 
         function gaussianRandom(mean = 0, stdev = 0.15) {
             let u = 1 - Math.random();
@@ -239,11 +257,11 @@
 
             if (tabNum === 2) {
                 if (!chart2) initChart(2);
-                drawCalorimeter(2, parseFloat(document.getElementById('temp2').value), false);
+                drawCalorimeter(2, currentSimTemp2, isHeaterActive2);
             }
             if (tabNum === 3) {
                 if (!chart3) initChart(3);
-                drawCalorimeter(3, parseFloat(document.getElementById('temp3').value), false);
+                drawCalorimeter(3, currentSimTemp3, isHeaterActive3);
             }
         }
 
@@ -284,6 +302,7 @@
             const ctx = canvas.getContext('2d');
             const w = canvas.width, h = canvas.height;
             const isIsolated = tabNum === 2 ? (document.getElementById('sysType2').value === 'isolated') : false;
+            let bubbles = tabNum === 2 ? bubbles2 : bubbles3;
 
             ctx.clearRect(0, 0, w, h);
 
@@ -350,11 +369,27 @@
             }
         }
 
-        function startSimulation(tabNum) {
-            clearInterval(simInterval);
-            cancelAnimationFrame(animFrameId);
-            bubbles = [];
+        function setButtonStates(tabNum, start, pause, resume) {
+            const startBtn = document.getElementById(`startBtn${tabNum}`);
+            const pauseBtn = document.getElementById(`pauseBtn${tabNum}`);
+            const resumeBtn = document.getElementById(`resumeBtn${tabNum}`);
 
+            startBtn.disabled = !start;
+            startBtn.classList.toggle('opacity-50', !start);
+
+            pauseBtn.disabled = !pause;
+            pauseBtn.classList.toggle('opacity-50', !pause);
+
+            resumeBtn.disabled = !resume;
+            resumeBtn.classList.toggle('opacity-50', !resume);
+        }
+
+        function startSimulation(tabNum) {
+            resetSimulation(tabNum);
+            runHeatingTimer(tabNum);
+        }
+
+        function runHeatingTimer(tabNum) {
             const isWater = tabNum === 2;
             const liquidName = isWater ? "Water" : "Ethanol";
             const sysType = isWater ? document.getElementById('sysType2').value : 'closed';
@@ -363,74 +398,116 @@
             const targetChart = isWater ? chart2 : chart3;
             const logTable = document.getElementById(isWater ? 'p2LogTable' : 'p3LogTable');
 
-            // Reset Chart & Data Log Table
-            targetChart.data.labels = [];
-            targetChart.data.datasets[0].data = [];
-            targetChart.update();
-            logTable.innerHTML = "";
-
             const vol = parseFloat(document.getElementById(isWater ? 'vol2' : 'vol3').value);
             const mass = vol * rho;
-            const T_room = parseFloat(document.getElementById(isWater ? 'temp2' : 'temp3').value); // T_room equals Initial Temp
-            currentSimTemp = T_room;
+            const T_room = parseFloat(document.getElementById(isWater ? 'temp2' : 'temp3').value);
             const targetTemp = parseFloat(document.getElementById(isWater ? 'targetTemp2' : 'targetTemp3').value);
             const V = parseFloat(document.getElementById(isWater ? 'v2' : 'v3').value);
             const P_elec = (V * V) / R_TRUE;
 
-            let timeSec = 0;
-            isHeaterActive = true;
-            const btn = document.getElementById(isWater ? 'startBtn2' : 'startBtn3');
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-
-            document.getElementById(isWater ? 'tempDisp2' : 'tempDisp3').innerText = currentSimTemp.toFixed(2);
-            document.getElementById(isWater ? 'timer2' : 'timer3').innerText = "00:00";
+            if (isWater) isHeaterActive2 = true; else isHeaterActive3 = true;
+            setButtonStates(tabNum, false, true, false);
 
             function renderLoop() {
-                drawCalorimeter(tabNum, currentSimTemp, isHeaterActive);
-                if (isHeaterActive) animFrameId = requestAnimationFrame(renderLoop);
+                const currentTemp = isWater ? currentSimTemp2 : currentSimTemp3;
+                const active = isWater ? isHeaterActive2 : isHeaterActive3;
+                drawCalorimeter(tabNum, currentTemp, active);
+                if (active) {
+                    if (isWater) animFrameId2 = requestAnimationFrame(renderLoop);
+                    else animFrameId3 = requestAnimationFrame(renderLoop);
+                }
             }
             renderLoop();
 
-            simInterval = setInterval(() => {
+            const interval = setInterval(() => {
+                let currentTemp = isWater ? currentSimTemp2 : currentSimTemp3;
+                let timeSec = isWater ? timeSec2 : timeSec3;
+
                 timeSec += 1;
+                if (isWater) timeSec2 = timeSec; else timeSec3 = timeSec;
 
                 let dT_heat = P_elec / (mass * c);
-                let dT_loss = (sysType === 'closed') ? K_COOLING * (currentSimTemp - T_room) : 0;
+                let dT_loss = (sysType === 'closed') ? K_COOLING * (currentTemp - T_room) : 0;
                 let dT_net = dT_heat - dT_loss;
 
-                currentSimTemp += dT_net;
+                currentTemp += dT_net;
+                if (isWater) currentSimTemp2 = currentTemp; else currentSimTemp3 = currentTemp;
 
                 const mins = String(Math.floor(timeSec / 60)).padStart(2, '0');
                 const secs = String(timeSec % 60).padStart(2, '0');
-                const noisyRealtimeTemp = (currentSimTemp + gaussianRandom(0, 0.15)).toFixed(2);
+                const noisyRealtimeTemp = (currentTemp + gaussianRandom(0, 0.15)).toFixed(2);
 
                 document.getElementById(isWater ? 'timer2' : 'timer3').innerText = `${mins}:${secs}`;
                 document.getElementById(isWater ? 'tempDisp2' : 'tempDisp3').innerText = noisyRealtimeTemp;
 
-                // Log Every 10 Seconds (Plot Chart + Update Table)
                 if (timeSec % 10 === 0) {
                     targetChart.data.labels.push(timeSec);
                     targetChart.data.datasets[0].data.push(noisyRealtimeTemp);
                     targetChart.update();
 
-                    // Append row to HTML table
                     logTable.innerHTML += `<tr class="border-b"><td class="p-1.5 font-mono">${timeSec}</td><td class="p-1.5 font-mono">${noisyRealtimeTemp}</td></tr>`;
 
-                    const logEntry = { Liquid: liquidName, System: sysType, Voltage_V: V, Current_A: (V/R_TRUE).toFixed(2), Time_s: timeSec, Temp_C: noisyRealtimeTemp };
-                    if (isWater) expLogsPart2.push(logEntry);
-                    else expLogsPart3.push(logEntry);
+                    // NO CURRENT COLUMN IN LOGS
+                    const logEntry = { Liquid: liquidName, System: sysType, Voltage_V: V, Time_s: timeSec, Temp_C: noisyRealtimeTemp };
+                    if (isWater) expLogsPart2.push(logEntry); else expLogsPart3.push(logEntry);
                 }
 
-                if (currentSimTemp >= targetTemp) {
-                    clearInterval(simInterval);
-                    isHeaterActive = false;
-                    btn.disabled = false;
-                    btn.classList.remove('opacity-50');
-                    drawCalorimeter(tabNum, currentSimTemp, false);
-                    alert(`Experiment Complete (${liquidName} - ${sysType.toUpperCase()})\nTarget Temperature Reached: ${currentSimTemp.toFixed(2)} °C\nElapsed Time: ${timeSec} seconds`);
+                if (currentTemp >= targetTemp) {
+                    pauseSimulation(tabNum);
+                    setButtonStates(tabNum, true, false, false);
+                    alert(`Experiment Complete (${liquidName} - ${sysType.toUpperCase()})\nTarget Temperature Reached: ${currentTemp.toFixed(2)} °C\nElapsed Time: ${timeSec} seconds`);
                 }
             }, 1000);
+
+            if (isWater) simInterval2 = interval; else simInterval3 = interval;
+        }
+
+        function pauseSimulation(tabNum) {
+            const isWater = tabNum === 2;
+            if (isWater) {
+                clearInterval(simInterval2);
+                cancelAnimationFrame(animFrameId2);
+                isHeaterActive2 = false;
+            } else {
+                clearInterval(simInterval3);
+                cancelAnimationFrame(animFrameId3);
+                isHeaterActive3 = false;
+            }
+            drawCalorimeter(tabNum, isWater ? currentSimTemp2 : currentSimTemp3, false);
+            setButtonStates(tabNum, false, false, true);
+        }
+
+        function resumeSimulation(tabNum) {
+            runHeatingTimer(tabNum);
+        }
+
+        function resetSimulation(tabNum) {
+            pauseSimulation(tabNum);
+            const isWater = tabNum === 2;
+            const initTemp = parseFloat(document.getElementById(isWater ? 'temp2' : 'temp3').value);
+
+            if (isWater) {
+                currentSimTemp2 = initTemp;
+                timeSec2 = 0;
+                bubbles2 = [];
+                expLogsPart2 = [];
+                if (chart2) { chart2.data.labels = []; chart2.data.datasets[0].data = []; chart2.update(); }
+                document.getElementById('p2LogTable').innerHTML = "";
+                document.getElementById('timer2').innerText = "00:00";
+                document.getElementById('tempDisp2').innerText = initTemp.toFixed(2);
+            } else {
+                currentSimTemp3 = initTemp;
+                timeSec3 = 0;
+                bubbles3 = [];
+                expLogsPart3 = [];
+                if (chart3) { chart3.data.labels = []; chart3.data.datasets[0].data = []; chart3.update(); }
+                document.getElementById('p3LogTable').innerHTML = "";
+                document.getElementById('timer3').innerText = "00:00";
+                document.getElementById('tempDisp3').innerText = initTemp.toFixed(2);
+            }
+
+            drawCalorimeter(tabNum, initTemp, false);
+            setButtonStates(tabNum, true, false, false);
         }
 
         function downloadCSV(part) {
@@ -444,13 +521,13 @@
                 filename = "part1_resistance_data.csv";
             } else if (part === 2) {
                 if (expLogsPart2.length === 0) { alert("No Part 2 data recorded."); return; }
-                csvContent += "Liquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
-                expLogsPart2.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                csvContent += "Liquid,SystemType,Voltage(V),Time(s),Temp(degC)\n";
+                expLogsPart2.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Time_s},${r.Temp_C}\n`; });
                 filename = "part2_water_heating_data.csv";
             } else if (part === 3) {
                 if (expLogsPart3.length === 0) { alert("No Part 3 data recorded."); return; }
-                csvContent += "Liquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
-                expLogsPart3.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                csvContent += "Liquid,SystemType,Voltage(V),Time(s),Temp(degC)\n";
+                expLogsPart3.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Time_s},${r.Temp_C}\n`; });
                 filename = "part3_ethanol_heating_data.csv";
             } else if (part === 'all') {
                 if (expLogsPart1.length === 0 && expLogsPart2.length === 0 && expLogsPart3.length === 0) {
@@ -459,11 +536,11 @@
                 csvContent += "=== PART 1: RESISTANCE ===\nTrial,Voltage(V),MeasuredCurrent(A)\n";
                 expLogsPart1.forEach((r, idx) => { csvContent += `${idx + 1},${r.Voltage},${r.Current}\n`; });
                 
-                csvContent += "\n=== PART 2: WATER HEATING ===\nLiquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
-                expLogsPart2.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                csvContent += "\n=== PART 2: WATER HEATING ===\nLiquid,SystemType,Voltage(V),Time(s),Temp(degC)\n";
+                expLogsPart2.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Time_s},${r.Temp_C}\n`; });
 
-                csvContent += "\n=== PART 3: ETHANOL HEATING ===\nLiquid,SystemType,Voltage(V),Current(A),Time(s),Temp(degC)\n";
-                expLogsPart3.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Current_A},${r.Time_s},${r.Temp_C}\n`; });
+                csvContent += "\n=== PART 3: ETHANOL HEATING ===\nLiquid,SystemType,Voltage(V),Time(s),Temp(degC)\n";
+                expLogsPart3.forEach(r => { csvContent += `${r.Liquid},${r.System},${r.Voltage_V},${r.Time_s},${r.Temp_C}\n`; });
                 
                 filename = "combined_joule_lab_data.csv";
             }
