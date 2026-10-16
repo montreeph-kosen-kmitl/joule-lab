@@ -16,7 +16,8 @@
         <!-- Navigation Tabs & Master Export -->
         <div class="flex flex-wrap items-center justify-between border-b mb-6 gap-2">
             <div class="flex overflow-x-auto">
-                <button onclick="switchTab(1)" id="tab-1" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap">Part 1: Resistance (R)</button>
+                <button onclick="switchTab(0)" id="tab-0" class="py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap">0) Guidance & Report</button>
+                <button onclick="switchTab(1)" id="tab-1" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 1: Resistance (R)</button>
                 <button onclick="switchTab(2)" id="tab-2" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 2: Heating Water</button>
                 <button onclick="switchTab(3)" id="tab-3" class="py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap">Part 3: Heating Ethanol</button>
             </div>
@@ -25,8 +26,45 @@
             </button>
         </div>
 
+        <!-- Tab 0 Content: Guidance & Report -->
+        <div id="content-0" class="tab-content grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <div class="lg:col-span-8 bg-slate-50 p-4 rounded-lg border flex flex-col">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="font-bold text-lg text-blue-700">Lab Guidance Document</h3>
+                    <a href="guidance.pdf" target="_blank" class="text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 font-semibold px-2.5 py-1 rounded">
+                        ↗ Open in New Tab
+                    </a>
+                </div>
+                <div class="w-full h-96 bg-white border rounded-lg overflow-hidden">
+                    <iframe src="guidance.pdf" class="w-full h-full" title="Lab Guidance PDF">
+                        <p class="p-4 text-sm text-slate-500">Your browser does not support PDF embedding. You can <a href="guidance.pdf" class="text-blue-600 underline">download guidance.pdf here</a>.</p>
+                    </iframe>
+                </div>
+            </div>
+            <div class="lg:col-span-4 bg-slate-50 p-4 rounded-lg border flex flex-col justify-between space-y-4">
+                <div class="space-y-4">
+                    <h3 class="font-bold text-lg text-slate-800 border-b pb-2">Lab Report Template</h3>
+                    <p class="text-xs text-slate-600 leading-relaxed">
+                        Please download the official lab report template below. Fill in all experimental data, plot graphs, calculate slopes for specific heat capacity, and submit your report before the deadline.
+                    </p>
+                    <a href="report.pdf" download="report.pdf" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2.5 px-4 rounded-lg font-semibold text-sm flex items-center justify-center gap-2 shadow transition">
+                        📄 Download Lab Report Template (report.pdf)
+                    </a>
+                </div>
+                <!-- Deadline Notice Box -->
+                <div class="bg-amber-50 border-l-4 border-amber-500 p-3.5 rounded-r-lg">
+                    <div class="flex items-center gap-2 text-amber-800 font-bold text-xs uppercase tracking-wide">
+                        ⚠️ Submission Notice
+                    </div>
+                    <p class="text-xs font-semibold text-amber-900 mt-1">
+                        Report submission deadline: 1 week via Google Classroom
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <!-- Part 1 Content -->
-        <div id="content-1" class="tab-content grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div id="content-1" class="tab-content hidden grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-slate-50 p-4 rounded-lg border space-y-4">
                 <h3 class="font-bold text-lg text-blue-700">Set Voltage (V)</h3>
                 <div>
@@ -143,7 +181,7 @@
         const RHO_WATER = 1.0; 
         const C_ETHANOL = 2.440; 
         const RHO_ETHANOL = 0.789; 
-        const K_COOLING = 0.0005; // 5 * 10^-4 per second
+        const K_COOLING = 0.0005;
 
         let p1Data = [];
         let expLogsPart1 = [];
@@ -166,7 +204,7 @@
         }
 
         function switchTab(tabNum) {
-            [1, 2, 3].forEach(n => {
+            [0, 1, 2, 3].forEach(n => {
                 document.getElementById(`tab-${n}`).className = n === tabNum 
                     ? "py-2 px-4 border-b-2 font-semibold border-blue-600 text-blue-600 whitespace-nowrap"
                     : "py-2 px-4 border-b-2 font-semibold border-transparent text-slate-500 whitespace-nowrap";
@@ -225,7 +263,6 @@
 
             ctx.clearRect(0, 0, w, h);
 
-            // Outer Insulated Vessel
             ctx.fillStyle = isIsolated ? '#94a3b8' : '#cbd5e1'; 
             ctx.fillRect(20, 45, 180, 180);
             ctx.strokeStyle = '#334155';
@@ -237,16 +274,13 @@
                 ctx.fillRect(25, 50, 170, 10);
             }
 
-            // Liquid Fill
             const liquidColor = tabNum === 2 ? 'rgba(59, 130, 246, 0.65)' : 'rgba(168, 85, 247, 0.65)';
             ctx.fillStyle = liquidColor;
             ctx.fillRect(35, 100, 150, 115);
 
-            // Closed Lid
             ctx.fillStyle = '#1e293b';
             ctx.fillRect(15, 35, 190, 15);
 
-            // U-Shaped Heating Element
             ctx.strokeStyle = isHeating ? '#ef4444' : '#64748b';
             ctx.lineWidth = 5;
             ctx.lineCap = 'round';
@@ -257,14 +291,12 @@
             ctx.lineTo(85, 20); ctx.lineTo(10, 20);
             ctx.stroke();
 
-            // Thermometer
             ctx.fillStyle = '#f8fafc';
             ctx.fillRect(145, 15, 12, 175);
             ctx.strokeStyle = '#64748b';
             ctx.lineWidth = 1;
             ctx.strokeRect(145, 15, 12, 175);
 
-            // Mercury Column
             const mercuryHeight = Math.min(150, Math.max(10, (temp - 15) * 3.2));
             ctx.fillStyle = '#dc2626';
             ctx.fillRect(147.5, 180 - mercuryHeight, 7, mercuryHeight);
@@ -272,7 +304,6 @@
             ctx.arc(151, 185, 8, 0, Math.PI * 2);
             ctx.fill();
 
-            // Boiling Bubbles
             if (isHeating && temp > 30) {
                 if (Math.random() < (temp - 30) / 25) {
                     bubbles.push({
