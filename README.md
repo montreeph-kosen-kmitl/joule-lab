@@ -1,4 +1,4 @@
-# 🧪 Joule's Law & Specific Heat Capacity Virtual Lab
+# Joule's Law & Specific Heat Capacity Virtual Lab
 
 Provided website: https://montreeph-kosen-kmitl.github.io/joule-lab/
 
@@ -6,7 +6,7 @@ Welcome to the **Joule's Law & Specific Heat Capacity Virtual Laboratory**—an 
 
 ---
 
-## 🎯 Learning Objectives
+## Learning Objectives
 
 1. **Understand Joule's Law ($P = IV = I^2R$):** Investigate the relationship between voltage ($V$) and current ($I$) to determine the resistance ($R$) of the heating element.
 2. **Explore Thermal Energy Transfer:** Observe the conversion of electrical energy into thermal energy inside a calorimeter ($\Delta Q = m c \Delta T$).
@@ -18,7 +18,7 @@ Welcome to the **Joule's Law & Specific Heat Capacity Virtual Laboratory**—an 
 
 ---
 
-## 📑 Laboratory Structure
+## Laboratory Structure
 
 The virtual experiment is organized into **4 main tabs**:
 
@@ -42,7 +42,7 @@ The virtual experiment is organized into **4 main tabs**:
 
 ---
 
-## 🚀 Quick Start & User Guide
+## Quick Start & User Guide
 
 ### For Students
 
@@ -51,13 +51,13 @@ The virtual experiment is organized into **4 main tabs**:
 4. **Perform Experiments:**
    * **Part 1:** Adjust the voltage slider and click **"Record Current (I)"** to populate the data table.
    * **Part 2 & 3:** Set your desired liquid parameters and click **"Start Heating"** to run the simulation.
-5. **Export Data:** Click **"Download CSV"** in any section or use the **"📦 Download All Parts (Combined CSV)"** button in the top navigation bar.
+5. **Export Data:** Click **"Download CSV"** in any section or use the **"Download All Parts (Combined CSV)"** button in the top navigation bar.
 6. **Data Analysis:** Open the exported `.csv` file in Excel or Google Sheets to generate graphs, calculate slope values, and determine $R$ and $c$.
 7. **Submit:** Fill in your findings in the report sheet and turn it in via **Google Classroom**.
 
 ---
 
-## 📂 Repository Structure
+## Repository Structure
 
 ```
 ├── index.html        # Main Virtual Lab application (HTML + Tailwind CSS + JS)
@@ -68,7 +68,7 @@ The virtual experiment is organized into **4 main tabs**:
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 * **HTML5 & Vanilla JavaScript (ES6+):** Pure client-side physics simulation engine for fast, responsive, and serverless execution.
 * **Tailwind CSS:** Modern, responsive UI design framework.
